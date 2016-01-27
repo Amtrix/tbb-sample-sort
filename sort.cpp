@@ -1,6 +1,7 @@
 #include <tbb/parallel_for.h>
 #include <bits/stdc++.h>
 #include <gflags/gflags.h>
+#include <chrono>
 
 DEFINE_bool(random, false,
               "If the array should be filled with random values");
@@ -21,7 +22,11 @@ namespace parallel_sample_sort {
     }
 
     void sort(std::vector<number> &arr) {
+      std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
         _sort(arr, 0, ((int)arr.size()) - 1);
+      std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+      auto usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+      std::cout << "Time: " << usec << std::endl;
     }
 }
 
