@@ -25,6 +25,15 @@ namespace parallel_sample_sort {
     }
 }
 
+bool check_correctness(const std::vector<number> &arr) {
+  std::vector<number> stl_sorted(arr);
+  std::sort(stl_sorted.begin(), stl_sorted.end());
+  for (int i = 0; i + 1 < arr.size(); ++i)
+      if (arr[i] != stl_sorted[i])
+          return false;
+  return true;
+}
+
 int main(int argc, char** argv) {
     google::ParseCommandLineFlags(&argc, &argv, true);
     std::ios_base::sync_with_stdio(false);
@@ -41,11 +50,7 @@ int main(int argc, char** argv) {
     }
 
     parallel_sample_sort::sort(arr);
-
-    bool correctness = true;
-    for (int i = 0; i + 1 < arr.size(); ++i)
-        if (!(arr[i] < arr[i+1]))
-            correctness = false;
+    bool correctness = check_correctness(arr);
 
     if (correctness) std::cout << "Correct." << std::endl;
     else std::cout << "Incorrect resulting order." << std::endl;
