@@ -226,10 +226,9 @@ int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
   std::ios_base::sync_with_stdio(false);
 
-  if (FLAGS_num_threads != -1) {
-    tbb::task_scheduler_init init(FLAGS_num_threads);
-  }
-
+  std::cout << "Initialized with " << FLAGS_num_threads << " threads." << std::endl;
+  tbb::task_scheduler_init init(FLAGS_num_threads);
+  
   parallel_sample_sort::testRank();
 
   number elem_count;
