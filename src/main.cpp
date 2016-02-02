@@ -17,41 +17,6 @@ DEFINE_int32(num_threads, -1, "Specifies the number of threads that should be us
 
 typedef int number;
 
-/*
-namespace parallel_sample_sort {
-  void testRank() {
-    std::vector<int> arr;
-    int pcnt = 3;
-    arr.push_back(0);
-    arr.push_back(10000);
-    arr.push_back(1000000);
-    for (int i = -10; i < 2000000; ++i)
-      arr.push_back(i);
-
-    RankCnt ranker;
-    ranker.pivots = std::vector<int>();
-    for (int i = 0; i < pcnt; ++i)
-      ranker.pivots.push_back(arr[i]);
-
-    ranker.arr = &arr;
-    ranker.sz = new std::atomic_int[pcnt+1];
-
-    for (int i = 0; i < pcnt+1; ++i)
-        ranker.sz[i] = 0;
-
-    parallel_for(tbb::blocked_range<int>(0, arr.size()), ranker);
-
-   // for (int i = 0; i < pcnt+1; ++i)
-   //   std::cout << ranker.rank[i] << " ";
-   // std::cout << std::endl;
-
-    assert(ranker.sz[0] == 1+0 - (-10) + 1);
-    assert(ranker.sz[1] == 1+10000 - 0);
-    assert(ranker.sz[2] == 1+1000000 - 10000);
-    assert(ranker.sz[3] == 2000000-1 - 1000000);
-  }
-}*/
-
 bool check_correctness(const std::vector<number> &arr) {
   std::vector<number> stl_sorted(arr);
 
@@ -66,7 +31,6 @@ bool check_correctness(const std::vector<number> &arr) {
           return false;
   return true;
 }
-
 
 int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, true);
@@ -89,7 +53,12 @@ int main(int argc, char** argv) {
       arr.push_back(num);
   }
 
+  std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
   parallel_sample_sort::sort<number>(arr);
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  auto usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+  std::cout << "Time: " << usec/1000000000.0 << std::endl;
+    
   bool correctness = check_correctness(arr);
 
   if (correctness) std::cout << "Correct." << std::endl;

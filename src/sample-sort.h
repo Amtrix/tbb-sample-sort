@@ -16,6 +16,13 @@ namespace parallel_sample_sort {
   static void sort_(std::vector<number> &arr, int lo, int hi);
 
   template <typename number>
+  static void sort(std::vector<number> &arr) { 
+    pecount = tbb::task_scheduler_init::default_num_threads();
+    sampleConst_ = std::log2(arr.size());
+    sort_<number>(arr, 0, ((int)arr.size()) - 1);
+  }
+
+  template <typename number>
   class RecursiveParallelizer {
     public:
       RecursiveParallelizer(RankCounter<number> &rank_cnt, std::vector<int> &arr,
@@ -35,19 +42,6 @@ namespace parallel_sample_sort {
       std::vector<int> &arr_;
       int lo_;
   };
-
-  template <typename number>
-  static void sort(std::vector<number> &arr) {
-    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
- 
-    pecount = tbb::task_scheduler_init::default_num_threads();
-    sampleConst_ = std::log2(arr.size());
-    sort_<number>(arr, 0, ((int)arr.size()) - 1);
-
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    auto usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-    std::cout << "Time: " << usec/1000000000.0 << std::endl;
-  }
 
   template <typename number>
   static void sort_(std::vector<number> &arr, int lo, int hi) {
