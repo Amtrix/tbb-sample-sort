@@ -33,7 +33,7 @@ namespace parallel_sample_sort {
 
       void operator()(const tbb::blocked_range<int>& range) const {
         for (int i = range.begin(); i != range.end(); ++i) {
-          sort_(arr_, lo_ + pfx_[i], lo_ + pfx_[i] + rank_cnt_.GetRankCount(i) - 1);
+          std::sort(arr_.begin() + lo_ + pfx_[i], arr_.begin() + lo_ + pfx_[i] + rank_cnt_.GetRankCount(i));
         }
       }
     private:
@@ -72,7 +72,7 @@ namespace parallel_sample_sort {
     std::vector<int> pivots;
 
     // now select every sampleConst_-th for the final pivot sample;
-    for (int i = 0; i < pecount; ++i)
+    for (int i = 1; i < pecount; ++i)
       pivots.push_back(arr[lo+i*sampleConst_]);
 
     
@@ -85,12 +85,12 @@ namespace parallel_sample_sort {
     // to pivots in their final position and move on getting all elements in their buckets
     
     // lets initialize the fill position
-    std::vector<int>pfx(pecount+1, 0);
-    for (int i = 1; i < pecount + 1; ++i)
+    std::vector<int>pfx(pecount, 0);
+    for (int i = 1; i < pecount; ++i)
       pfx[i] = pfx[i-1] + rank_cnt.GetRankCount(i-1);
     pfx.push_back(1e9); // dummy element for the right bound of the last group
 
-    std::vector<int>added(pecount+1, 0);
+    std::vector<int>added(pecount, 0);
     for (int i = lo; i < hi; ++i) {
       int r = rank_cnt.GetRank(arr[i]);
 
@@ -102,7 +102,7 @@ namespace parallel_sample_sort {
     }
 
     RecursiveParallelizer<number>rec_call(rank_cnt, arr, pfx, lo);
-    parallel_for(tbb::blocked_range<int>(0, pivots.size() + 1), rec_call);
+    parallel_for(tbb::blocked_range<int>(0, pecount), rec_call);
     
     rank_cnt.FreeMemory();
   }
