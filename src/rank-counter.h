@@ -4,6 +4,7 @@
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
 #include <bits/stdc++.h>
+#include <algorithm>
 
 namespace parallel_sample_sort {
     template <typename number>
@@ -19,13 +20,18 @@ namespace parallel_sample_sort {
 
         int GetRank(number val) const {
           int fdx = targetArr_.size();
-          for (int j = 0; j < targetArr_.size(); ++j) {
-            if (val <= targetArr_[j]) {
-              fdx = j;
-              break;
+          int count = targetArr_.size();
+          int low = 0;
+          while(count > 0){
+            int middle = low + count/2;
+            if(targetArr_[middle] < val){
+              low = middle+1;
+              count -= count/2 + 1;
+            }else{
+              count = count/2;
             }
           }
-          return fdx;
+          return low;
         }
 
         int GetRankCount(int dx) const {
