@@ -79,8 +79,8 @@ namespace parallel_sample_sort {
     for (int i = 1; i < pecount; ++i)
       pivots.push_back(pivot_samples[i*sampleConst_]);
 
-
-    RankCounter<number>rank_cnt(pivots, arr);
+    std::vector<int> ranks(arr.size());
+    RankCounter<number>rank_cnt(ranks,pivots, arr);
 
     // we want to do stuff in-place with the grouping: find out how many elements go in each bucket
     parallel_for(tbb::blocked_range<int>(lo, hi + 1), rank_cnt);

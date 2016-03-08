@@ -6,12 +6,14 @@
 #include <bits/stdc++.h>
 #include <algorithm>
 
+//Used to calculate the amount of elements per processor. (accessible by GetRankCount(proccesor_number))
+//It also calculates (stores in ranks) to which processor an element shall be sent
 namespace parallel_sample_sort {
     template <typename number>
     class RankCounter {
       public:
-        RankCounter(std::vector<int> &targetArr, std::vector<int> &queries)
-            : targetArr_(targetArr), queries_(queries){
+        RankCounter(std::vector<int>& ranks, std::vector<int> &targetArr, std::vector<int> &queries)
+            : ranks(ranks), targetArr_(targetArr), queries_(queries){
 
             sz_ = new std::atomic_int[targetArr.size()+1];
             for (int i = 0; i < targetArr.size() + 1; ++i)
@@ -40,13 +42,17 @@ namespace parallel_sample_sort {
 
         void operator()(const tbb::blocked_range<int>& range) const {
           for (int i = range.begin(); i != range.end(); ++i) {
-            sz_[GetRank(queries_[i])]++;
+            int rank = GetRank(queries_[i]);
+            sz_[rank]++;
+            ranks[i] = rank;
           }
         }
 
         void FreeMemory() {
           delete [] sz_;
         }
+
+      std::vector<int>& ranks;
       private:
         std::vector<number> &targetArr_;
         std::vector<int> &queries_;
