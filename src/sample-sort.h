@@ -56,24 +56,28 @@ namespace parallel_sample_sort {
       return;
     }
 
-
-    // lets select pivot_cnt random pivot elements and move them to the beginning of the array
-    int elem_left = hi - lo + 1;
-    for (int i = 0; i < pivot_cnt; ++i) {
-      int rdx = rand() % elem_left;
-      std::swap(arr[lo+i], arr[lo+i+rdx]);
-      elem_left--;
-    }
+    std::vector<number> pivot_samples(pivot_cnt);
+    // lets select pivot_cnt random pivot elements and store them in pivot_samples
+    // do this in parallel
+    int m = hi - lo + 1;
+    tbb::parallel_for(tbb::blocked_range<size_t>(0,pivot_cnt),
+      [m,lo,&arr,&pivot_samples](const tbb::blocked_range<size_t>& r) {
+        for(size_t i = r.begin(); i != r.end(); i++){
+          int rdx = rand() % m;
+          pivot_samples[i] = arr[lo+rdx];
+        }
+      }
+    );
 
     // sort pivots
-    std::sort(arr.begin() + lo, arr.begin() + lo + pivot_cnt);
+    std::sort(pivot_samples.begin(), pivot_samples.end());
 
 
-    std::vector<int> pivots;
+    std::vector<number> pivots;
 
     // now select every sampleConst_-th for the final pivot sample;
     for (int i = 1; i < pecount; ++i)
-      pivots.push_back(arr[lo+i*sampleConst_]);
+      pivots.push_back(pivot_samples[i*sampleConst_]);
 
 
     RankCounter<number>rank_cnt(pivots, arr);
