@@ -12,7 +12,7 @@ DEFINE_bool(random, false,
 
 DEFINE_bool(fill_descending, false, "If the array should be filled with (n...1)");
 
-DEFINE_int32(num_threads, -1, "Specifies the number of threads that should be used for the execution. " 
+DEFINE_int32(num_threads, -1, "Specifies the number of threads that should be used for the execution. "
                               "Default: -1 for automatic.");
 
 typedef int number;
@@ -38,7 +38,10 @@ int main(int argc, char** argv) {
 
   std::cout << "Initialized with " << FLAGS_num_threads << " threads." << std::endl;
   tbb::task_scheduler_init init(FLAGS_num_threads);
-  
+  int p = FLAGS_num_threads;
+  if(FLAGS_num_threads == -1){
+    p = tbb::task_scheduler_init::default_num_threads();
+  }
   //parallel_sample_sort::testRank();
 
   number elem_count;
@@ -54,11 +57,11 @@ int main(int argc, char** argv) {
   }
 
   std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-  parallel_sample_sort::sort<number>(arr);
+  parallel_sample_sort::sort<number>(arr,p);
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
   auto usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
   std::cout << "Time: " << usec/1000000000.0 << std::endl;
-    
+
   bool correctness = check_correctness(arr);
 
   if (correctness) std::cout << "Correct." << std::endl;

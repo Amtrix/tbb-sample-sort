@@ -16,8 +16,8 @@ namespace parallel_sample_sort {
   static void sort_(std::vector<number> &arr, int lo, int hi);
 
   template <typename number>
-  static void sort(std::vector<number> &arr) { 
-    pecount = tbb::task_scheduler_init::default_num_threads();
+  static void sort(std::vector<number> &arr, int number_of_threads) {
+    pecount = number_of_threads;
     sampleConst_ = std::log2(arr.size());
     sort_<number>(arr, 0, ((int)arr.size()) - 1);
   }
@@ -68,14 +68,14 @@ namespace parallel_sample_sort {
     // sort pivots
     std::sort(arr.begin() + lo, arr.begin() + lo + pivot_cnt);
 
-    
+
     std::vector<int> pivots;
 
     // now select every sampleConst_-th for the final pivot sample;
     for (int i = 1; i < pecount; ++i)
       pivots.push_back(arr[lo+i*sampleConst_]);
 
-    
+
     RankCounter<number>rank_cnt(pivots, arr);
 
     // we want to do stuff in-place with the grouping: find out how many elements go in each bucket
@@ -83,7 +83,7 @@ namespace parallel_sample_sort {
 
     // now that we know the size of each bucket {rank_cnt.rank}, we can position
     // to pivots in their final position and move on getting all elements in their buckets
-    
+
     // lets initialize the fill position
     std::vector<int>pfx(pecount, 0);
     for (int i = 1; i < pecount; ++i)
@@ -103,7 +103,7 @@ namespace parallel_sample_sort {
 
     RecursiveParallelizer<number>rec_call(rank_cnt, arr, pfx, lo);
     parallel_for(tbb::blocked_range<int>(0, pecount), rec_call);
-    
+
     rank_cnt.FreeMemory();
   }
 } // namespace parallel_sample_sort
