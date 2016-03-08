@@ -12,7 +12,7 @@ namespace parallel_sample_sort {
     template <typename number>
     class RankCounter {
       public:
-        RankCounter(std::vector<int>& ranks, std::vector<int> &targetArr, std::vector<int> &queries)
+        RankCounter(std::vector<int>& ranks, std::vector<int> &targetArr, std::vector<number> &queries)
             : ranks(ranks), targetArr_(targetArr), queries_(queries){
 
             sz_ = new std::atomic_int[targetArr.size()+1];
@@ -55,7 +55,7 @@ namespace parallel_sample_sort {
       std::vector<int>& ranks;
       private:
         std::vector<number> &targetArr_;
-        std::vector<int> &queries_;
+        std::vector<number> &queries_;
         std::atomic_int* sz_ = NULL;
     };
 

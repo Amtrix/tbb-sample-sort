@@ -12,7 +12,7 @@ namespace parallel_sample_sort {
     template <typename number>
     class Regrouper {
       public:
-        RankCounter(std::vector<int> &targetArr, std::vector<int> &queries)
+        RankCounter(std::vect)
             : targetArr_(targetArr), queries_(queries){
 
             sz_ = new std::atomic_int[targetArr.size()+1];
