@@ -95,17 +95,6 @@ namespace parallel_sample_sort {
       pfx[i] = pfx[i-1] + rank_cnt.GetRankCount(i-1);
     pfx.push_back(1e9); // dummy element for the right bound of the last group
 
-    // std::vector<int>added(pecount, 0);
-    // for (int i = lo; i < hi; ++i) {
-    //   int r = rank_cnt.GetRank(arr[i]);
-    //
-    //   while (i < lo+pfx[r] || i > lo+pfx[r] + added[r]) {
-    //     std::swap(arr[lo+pfx[r] + added[r]], arr[i]);
-    //     added[r]++;
-    //     r = rank_cnt.GetRank(arr[i]);
-    //   }
-    // }
-
     std::vector<number> regrouped_array(arr.size());
     Regrouper<number>regrouper(arr, regrouped_array, pecount, ranks, pfx);
     parallel_for(tbb::blocked_range<int>(lo, hi + 1), regrouper);
