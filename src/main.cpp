@@ -17,7 +17,7 @@ DEFINE_int32(num_threads, -1, "Specifies the number of threads that should be us
 
 typedef int number;
 
-bool check_correctness(const std::vector<number> &arr) {
+bool check_correctness(const std::vector<number> &arr, const std::vector<number>& parallel_sorted) {
   std::vector<number> stl_sorted(arr);
 
   std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
@@ -27,7 +27,7 @@ bool check_correctness(const std::vector<number> &arr) {
   std::cout << "STL sort time: " << usec/1000000000.0 << std::endl;
 
   for (int i = 0; i + 1 < arr.size(); ++i)
-      if (arr[i] != stl_sorted[i])
+      if (parallel_sorted[i] != stl_sorted[i])
           return false;
   return true;
 }
@@ -55,14 +55,14 @@ int main(int argc, char** argv) {
       else std::cin >> num;
       arr.push_back(num);
   }
-
+  std::vector<number> parallel_sorted(arr);
   std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-  parallel_sample_sort::sort<number>(arr,p);
+  parallel_sample_sort::sort<number>(parallel_sorted,p);
   std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
   auto usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
   std::cout << "Time: " << usec/1000000000.0 << std::endl;
 
-  bool correctness = check_correctness(arr);
+  bool correctness = check_correctness(arr, parallel_sorted);
 
   if (correctness) std::cout << "Correct." << std::endl;
   else std::cout << "Incorrect resulting order." << std::endl;

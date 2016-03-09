@@ -6,6 +6,7 @@
 #include <bits/stdc++.h>
 
 #include "rank-counter.h"
+#include "regrouper.h"
 
 namespace parallel_sample_sort {
    // not the best way to do it -> encapsulate together with sort_?
@@ -94,16 +95,31 @@ namespace parallel_sample_sort {
       pfx[i] = pfx[i-1] + rank_cnt.GetRankCount(i-1);
     pfx.push_back(1e9); // dummy element for the right bound of the last group
 
-    std::vector<int>added(pecount, 0);
-    for (int i = lo; i < hi; ++i) {
-      int r = rank_cnt.GetRank(arr[i]);
+    // std::vector<int>added(pecount, 0);
+    // for (int i = lo; i < hi; ++i) {
+    //   int r = rank_cnt.GetRank(arr[i]);
+    //
+    //   while (i < lo+pfx[r] || i > lo+pfx[r] + added[r]) {
+    //     std::swap(arr[lo+pfx[r] + added[r]], arr[i]);
+    //     added[r]++;
+    //     r = rank_cnt.GetRank(arr[i]);
+    //   }
+    // }
 
-      while (i < lo+pfx[r] || i > lo+pfx[r] + added[r]) {
-        std::swap(arr[lo+pfx[r] + added[r]], arr[i]);
-        added[r]++;
-        r = rank_cnt.GetRank(arr[i]);
+    std::vector<number> regrouped_array(arr.size());
+    Regrouper<number>regrouper(arr, regrouped_array, pecount, ranks, pfx);
+    parallel_for(tbb::blocked_range<int>(lo, hi + 1), regrouper);
+    regrouper.FreeMemory();
+
+    //we want to sort "inplace" (not really inplace, but the result should be stored in the same place). Thus, we need to copy
+    //the regrouped array into the original_array
+    tbb::parallel_for(tbb::blocked_range<int>(lo,hi+1),
+      [&arr,&regrouped_array](const tbb::blocked_range<int>& r) {
+        for(int i = r.begin(); i != r.end(); i++){
+          arr[i] = regrouped_array[i];
+        }
       }
-    }
+    );
 
     RecursiveParallelizer<number>rec_call(rank_cnt, arr, pfx, lo);
     parallel_for(tbb::blocked_range<int>(0, pecount), rec_call);
