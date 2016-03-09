@@ -13,13 +13,15 @@ namespace parallel_sample_sort {
   static int pecount;
   static int sampleConst_;
 
+  static const float EPS = 0.1; // with probability at least 1-1/m, no group will have more than (1+EPS)*(m/pecount) elements (see lecture)
+                                // 0.1 seems to be a good value
   template <typename number>
   static void sort_(std::vector<number> &arr, int lo, int hi);
 
   template <typename number>
   static void sort(std::vector<number> &arr, int number_of_threads) {
     pecount = number_of_threads;
-    sampleConst_ = std::log2(arr.size());
+    sampleConst_ = 4.0/(EPS*EPS) * std::log(arr.size());
     sort_<number>(arr, 0, ((int)arr.size()) - 1);
   }
 
