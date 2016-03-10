@@ -6,10 +6,8 @@
 #include <bits/stdc++.h>
 #include "tbb/enumerable_thread_specific.h"
 
-#include "rank-counter.h"
 #include "count-elements-per-group.h"
 #include "regroup-elements-globally.h"
-#include "regrouper.h"
 #include "group-locally.h"
 #include "types.h"
 
