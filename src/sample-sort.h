@@ -67,10 +67,8 @@ namespace parallel_sample_sort {
 
     // we're about to select too many pivots? sort that right-away and return.
     if (pivot_cnt > hi - lo + 1) {
-      //std::sort(arr.begin() + lo, arr.begin() + hi + 1);
-      //return;
-      sampleConst_ = 2;
-      pivot_cnt = pecount * sampleConst_;
+      std::sort(arr.begin() + lo, arr.begin() + hi + 1);
+      return;
     }
 
     std::vector<number> pivot_samples(pivot_cnt);
@@ -98,31 +96,59 @@ namespace parallel_sample_sort {
 
     ThreadLocalGroupsType<number> threadLocalGroups(//stores grouped elements per Thread
       [](){std::vector<std::vector<number>> v(pecount) ; return v;});
-    printArray(arr);
+
     //First: Each thread groups its elements by the target thread
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
+
     GroupLocally <number>group_locally(arr, pivots, threadLocalGroups);
     tbb::parallel_for(tbb::blocked_range<int>(lo,hi+1), group_locally);
 
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    auto usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    std::cout << "1. time: " << usec/1000000000.0 << std::endl;
+
     //Second: Count size of different groups
+    start = std::chrono::steady_clock::now();
+
     std::vector<int> group_counts(pecount,0);
     CountElementsPerGroup<number> count_elements_per_group(pecount, threadLocalGroups, group_counts);
 
-    // tbb::parallel_for(tbb::blocked_range<int>(0, pecount), count_elements_per_group);
-    // printArray(group_counts);
-    // //Third: Calculate the position of the different groups in the original array
-    // std::vector<int>pfx(pecount+1, 0);
-    // for (int i = 1; i <= pecount; ++i) {
-    //   pfx[i] = pfx[i-1] + group_counts[i-1];
-    //   //std::cout << pfx[i] << std::endl;
-    // }
-    //
-    // //Fourth: Move groups into the original array
-    // RegroupElementsGlobally<number> regroup_elements_globally(arr, threadLocalGroups, pfx);
-    // tbb::parallel_for(tbb::blocked_range<int>(0, pecount), regroup_elements_globally);
-    // printArray(arr);
-    // RecursiveParallelizer<number>rec_call(arr, pfx, lo);
-    // parallel_for(tbb::blocked_range<int>(0, pecount), rec_call);
+    tbb::parallel_for(tbb::blocked_range<int>(0, pecount), count_elements_per_group);
 
+    end = std::chrono::steady_clock::now();
+    usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    std::cout << "2. time: " << usec/1000000000.0 << std::endl;
+
+    //Third: Calculate the position of the different groups in the original array
+    start = std::chrono::steady_clock::now();
+
+    std::vector<int>pfx(pecount+1, 0);
+    for (int i = 1; i <= pecount; ++i) {
+      pfx[i] = pfx[i-1] + group_counts[i-1];
+    }
+    end = std::chrono::steady_clock::now();
+    usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    std::cout << "3. time: " << usec/1000000000.0 << std::endl;
+
+    //Fourth: Move groups into the original array
+    start = std::chrono::steady_clock::now();
+
+    RegroupElementsGlobally<number> regroup_elements_globally(arr, threadLocalGroups, pfx);
+    tbb::parallel_for(tbb::blocked_range<int>(0, pecount), regroup_elements_globally);
+
+    end = std::chrono::steady_clock::now();
+    usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    std::cout << "4. time: " << usec/1000000000.0 << std::endl;
+    
+    //Fifth: Sort elements locally
+    start = std::chrono::steady_clock::now();
+
+    RecursiveParallelizer<number>rec_call(arr, pfx, lo);
+    parallel_for(tbb::blocked_range<int>(0, pecount), rec_call);
+
+    end = std::chrono::steady_clock::now();
+    usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    std::cout << "5. time: " << usec/1000000000.0 << std::endl;
   }
 } // namespace parallel_sample_sort
 
