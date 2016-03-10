@@ -6,6 +6,7 @@
 #include <chrono>
 #include <atomic>
 #include "sample-sort.h"
+#include <ctime>
 
 DEFINE_bool(random, false,
               "If the array should be filled with random values");
@@ -46,7 +47,7 @@ int main(int argc, char** argv) {
 
   number elem_count;
   std::cin >> elem_count;
-
+  std::srand(std::time(0)); // use current time as seed for random generator
   std::vector<number> arr;
   for (int i = 0; i < elem_count; ++i) {
       number num;

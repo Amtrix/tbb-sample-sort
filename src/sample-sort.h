@@ -4,9 +4,14 @@
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
 #include <bits/stdc++.h>
+#include "tbb/enumerable_thread_specific.h"
 
 #include "rank-counter.h"
+#include "count-elements-per-group.h"
+#include "regroup-elements-globally.h"
 #include "regrouper.h"
+#include "group-locally.h"
+#include "types.h"
 
 namespace parallel_sample_sort {
    // not the best way to do it -> encapsulate together with sort_?
@@ -25,22 +30,29 @@ namespace parallel_sample_sort {
     sort_<number>(arr, 0, ((int)arr.size()) - 1);
   }
 
+  static void printArray(std::vector<int> &arr){
+    for(int i=0; i<arr.size();i++){
+      std::cout << arr[i] << ",";
+    }
+    std::cout << std::endl;
+  }
+
+
   template <typename number>
   class RecursiveParallelizer {
     public:
-      RecursiveParallelizer(RankCounter<number> &rank_cnt, std::vector<int> &arr,
-              std::vector<int> &pfx, int lo) : rank_cnt_(rank_cnt), arr_(arr),
+      RecursiveParallelizer(std::vector<int> &arr,
+              std::vector<int> &pfx, int lo) :  arr_(arr),
                                                pfx_(pfx), lo_ (lo) {
 
       }
 
       void operator()(const tbb::blocked_range<int>& range) const {
         for (int i = range.begin(); i != range.end(); ++i) {
-          std::sort(arr_.begin() + lo_ + pfx_[i], arr_.begin() + lo_ + pfx_[i] + rank_cnt_.GetRankCount(i));
+          std::sort(arr_.begin() + lo_ + pfx_[i], arr_.begin() + lo_ + pfx_[i+1]);
         }
       }
     private:
-      RankCounter<number> &rank_cnt_;
       std::vector<int> &pfx_;
       std::vector<int> &arr_;
       int lo_;
@@ -55,8 +67,10 @@ namespace parallel_sample_sort {
 
     // we're about to select too many pivots? sort that right-away and return.
     if (pivot_cnt > hi - lo + 1) {
-      std::sort(arr.begin() + lo, arr.begin() + hi + 1);
-      return;
+      //std::sort(arr.begin() + lo, arr.begin() + hi + 1);
+      //return;
+      sampleConst_ = 2;
+      pivot_cnt = pecount * sampleConst_;
     }
 
     std::vector<number> pivot_samples(pivot_cnt);
@@ -82,40 +96,33 @@ namespace parallel_sample_sort {
     for (int i = 1; i < pecount; ++i)
       pivots.push_back(pivot_samples[i*sampleConst_]);
 
-    std::vector<int> ranks(arr.size());
-    RankCounter<number>rank_cnt(ranks,pivots, arr);
+    ThreadLocalGroupsType<number> threadLocalGroups(//stores grouped elements per Thread
+      [](){std::vector<std::vector<number>> v(pecount) ; return v;});
+    printArray(arr);
+    //First: Each thread groups its elements by the target thread
+    GroupLocally <number>group_locally(arr, pivots, threadLocalGroups);
+    tbb::parallel_for(tbb::blocked_range<int>(lo,hi+1), group_locally);
 
-    // we want to do stuff in-place with the grouping: find out how many elements go in each bucket
-    parallel_for(tbb::blocked_range<int>(lo, hi + 1), rank_cnt);
+    //Second: Count size of different groups
+    std::vector<int> group_counts(pecount,0);
+    CountElementsPerGroup<number> count_elements_per_group(pecount, threadLocalGroups, group_counts);
 
-    // now that we know the size of each bucket {rank_cnt.rank}, we can position
-    // to pivots in their final position and move on getting all elements in their buckets
+    // tbb::parallel_for(tbb::blocked_range<int>(0, pecount), count_elements_per_group);
+    // printArray(group_counts);
+    // //Third: Calculate the position of the different groups in the original array
+    // std::vector<int>pfx(pecount+1, 0);
+    // for (int i = 1; i <= pecount; ++i) {
+    //   pfx[i] = pfx[i-1] + group_counts[i-1];
+    //   //std::cout << pfx[i] << std::endl;
+    // }
+    //
+    // //Fourth: Move groups into the original array
+    // RegroupElementsGlobally<number> regroup_elements_globally(arr, threadLocalGroups, pfx);
+    // tbb::parallel_for(tbb::blocked_range<int>(0, pecount), regroup_elements_globally);
+    // printArray(arr);
+    // RecursiveParallelizer<number>rec_call(arr, pfx, lo);
+    // parallel_for(tbb::blocked_range<int>(0, pecount), rec_call);
 
-    // lets initialize the fill position
-    std::vector<int>pfx(pecount, 0);
-    for (int i = 1; i < pecount; ++i)
-      pfx[i] = pfx[i-1] + rank_cnt.GetRankCount(i-1);
-    pfx.push_back(1e9); // dummy element for the right bound of the last group
-
-    std::vector<number> regrouped_array(arr.size());
-    Regrouper<number>regrouper(arr, regrouped_array, pecount, ranks, pfx);
-    parallel_for(tbb::blocked_range<int>(lo, hi + 1), regrouper);
-    regrouper.FreeMemory();
-
-    //we want to sort "inplace" (not really inplace, but the result should be stored in the same place). Thus, we need to copy
-    //the regrouped array into the original_array
-    tbb::parallel_for(tbb::blocked_range<int>(lo,hi+1),
-      [&arr,&regrouped_array](const tbb::blocked_range<int>& r) {
-        for(int i = r.begin(); i != r.end(); i++){
-          arr[i] = regrouped_array[i];
-        }
-      }
-    );
-
-    RecursiveParallelizer<number>rec_call(rank_cnt, arr, pfx, lo);
-    parallel_for(tbb::blocked_range<int>(0, pecount), rec_call);
-
-    rank_cnt.FreeMemory();
   }
 } // namespace parallel_sample_sort
 
