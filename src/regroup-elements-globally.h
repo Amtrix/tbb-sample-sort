@@ -24,9 +24,8 @@ namespace parallel_sample_sort {
           for (int i = range.begin(); i != range.end(); ++i) {
             int added = 0;
             for(auto it = threadLocalGroups.begin(); it != threadLocalGroups.end(); it++){
-              for(int j = 0; j< (*it)[i].size(); j++){
-                target_array[group_offsets[i] + added++] = (*it)[i][j];
-              }
+              std::copy((*it)[i].begin(), (*it)[i].end(), target_array.begin() + group_offsets[i] + added);
+              added += (*it)[i].size();
             }
           }
         }
