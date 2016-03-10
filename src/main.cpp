@@ -43,7 +43,6 @@ int main(int argc, char** argv) {
   if(FLAGS_num_threads == -1){
     p = tbb::task_scheduler_init::default_num_threads();
   }
-  //parallel_sample_sort::testRank();
 
   number elem_count;
   std::cin >> elem_count;

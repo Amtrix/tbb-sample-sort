@@ -8,15 +8,16 @@
 #include "tbb/enumerable_thread_specific.h"
 #include "types.h"
 
-//Groups the elements of the original array locally.
-//The elements are stored in a ThreadLocal vector<vector<number>>(groups): One vector per group in ThreadLocal
+//This class counts the number of elements per group by iterating over all ThreadLocal vector<vecctor>s that were
+//calculated in group-locally.
+//The resulting number of elements per group will be stored in group_count
 namespace parallel_sample_sort {
     template <typename number>
     class CountElementsPerGroup {
       public:
 
-        CountElementsPerGroup(int number_of_groups, ThreadLocalGroupsType<number>& threadLocalGroups, std::vector<int>& group_counts)
-            : number_of_groups(number_of_groups), threadLocalGroups(threadLocalGroups), group_counts(group_counts){
+        CountElementsPerGroup(ThreadLocalGroupsType<number>& threadLocalGroups, std::vector<int>& group_counts)
+            : threadLocalGroups(threadLocalGroups), group_counts(group_counts){
         }
 
         void operator()(const tbb::blocked_range<int>& range) const {
@@ -27,7 +28,6 @@ namespace parallel_sample_sort {
           }
         }
       private:
-        int number_of_groups;
         ThreadLocalGroupsType<number>& threadLocalGroups;
         std::vector<int>& group_counts;
     };

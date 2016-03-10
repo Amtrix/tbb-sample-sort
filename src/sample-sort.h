@@ -111,7 +111,7 @@ namespace parallel_sample_sort {
     start = std::chrono::steady_clock::now();
 
     std::vector<int> group_counts(pecount,0);
-    CountElementsPerGroup<number> count_elements_per_group(pecount, threadLocalGroups, group_counts);
+    CountElementsPerGroup<number> count_elements_per_group(threadLocalGroups, group_counts);
 
     tbb::parallel_for(tbb::blocked_range<int>(0, pecount), count_elements_per_group);
 
@@ -139,7 +139,7 @@ namespace parallel_sample_sort {
     end = std::chrono::steady_clock::now();
     usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
     std::cout << "4. time: " << usec/1000000000.0 << std::endl;
-    
+
     //Fifth: Sort elements locally
     start = std::chrono::steady_clock::now();
 

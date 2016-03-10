@@ -8,8 +8,9 @@
 #include "tbb/enumerable_thread_specific.h"
 #include "types.h"
 
-//Groups the elements of the original array locally.
-//The elements are stored in a ThreadLocal vector<vector<number>>(groups): One vector per gorup in ThreadLocal
+//This class groups the elements of the original array locally per Thread.
+//The elements are stored in a ThreadLocal vector<vector<number>>(groups): One vector per group which stores all
+//elements belonging to the group.
 namespace parallel_sample_sort {
     template <typename number>
     class GroupLocally {
@@ -21,7 +22,7 @@ namespace parallel_sample_sort {
         }
 
         int GetRank(number val) const {
-          //this is basically std::lower_bound. Implementing it ourselfs is faster.
+          //this is basically std::lower_bound. Implementing it ourself is faster.
           int fdx = pivots.size();
           int count = pivots.size();
           int low = 0;

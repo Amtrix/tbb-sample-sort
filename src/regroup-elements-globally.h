@@ -8,8 +8,9 @@
 #include "tbb/enumerable_thread_specific.h"
 #include "types.h"
 
-//Groups the elements of the original array locally.
-//The elements are stored in a ThreadLocal vector<vector<number>>(groups): One vector per group in ThreadLocal
+//This class regroups the elements stored in the ThreadLocal storage and stores them into them
+//target_array, such that elements belonging to a group are stored consecutevely and such that
+//the groups are stored in ascending order
 namespace parallel_sample_sort {
     template <typename number>
     class RegroupElementsGlobally {
