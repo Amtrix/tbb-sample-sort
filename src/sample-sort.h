@@ -63,8 +63,8 @@ namespace parallel_sample_sort {
 
     int pivot_cnt = pecount * sampleConst_;
 
-    // we're about to select too many pivots? sort that right-away and return.
-    if (pivot_cnt > hi - lo + 1) {
+    // we're about to select too many pivots or have only one thread? then just sort sequentially.
+    if (pivot_cnt > hi - lo + 1 || pecount == 1) {
       std::sort(arr.begin() + lo, arr.begin() + hi + 1);
       return;
     }
@@ -92,61 +92,34 @@ namespace parallel_sample_sort {
     for (int i = 1; i < pecount; ++i)
       pivots.push_back(pivot_samples[i*sampleConst_]);
 
+
     ThreadLocalGroupsType<number> threadLocalGroups(//stores grouped elements per Thread
       [](){std::vector<std::vector<number>> v(pecount) ; return v;});
 
     //First: Each thread groups its elements by the target thread
-    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
-
     GroupLocally <number>group_locally(arr, pivots, threadLocalGroups);
     tbb::parallel_for(tbb::blocked_range<int>(lo,hi+1), group_locally);
 
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    auto usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-    std::cout << "1. time: " << usec/1000000000.0 << std::endl;
-
     //Second: Count size of different groups
-    start = std::chrono::steady_clock::now();
-
     std::vector<int> group_counts(pecount,0);
     CountElementsPerGroup<number> count_elements_per_group(threadLocalGroups, group_counts);
-
     tbb::parallel_for(tbb::blocked_range<int>(0, pecount), count_elements_per_group);
 
-    end = std::chrono::steady_clock::now();
-    usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-    std::cout << "2. time: " << usec/1000000000.0 << std::endl;
 
     //Third: Calculate the position of the different groups in the original array
-    start = std::chrono::steady_clock::now();
-
     std::vector<int>group_offsets(pecount+1, 0);
     for (int i = 1; i <= pecount; ++i) {
       group_offsets[i] = group_offsets[i-1] + group_counts[i-1];
     }
-    end = std::chrono::steady_clock::now();
-    usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-    std::cout << "3. time: " << usec/1000000000.0 << std::endl;
 
     //Fourth: Move groups into the original array
-    start = std::chrono::steady_clock::now();
-
     RegroupElementsGlobally<number> regroup_elements_globally(arr, threadLocalGroups, group_offsets);
     tbb::parallel_for(tbb::blocked_range<int>(0, pecount), regroup_elements_globally);
 
-    end = std::chrono::steady_clock::now();
-    usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-    std::cout << "4. time: " << usec/1000000000.0 << std::endl;
-
     //Fifth: Sort elements locally
-    start = std::chrono::steady_clock::now();
-
     RecursiveParallelizer<number>rec_call(arr, group_offsets, lo);
     parallel_for(tbb::blocked_range<int>(0, pecount), rec_call);
 
-    end = std::chrono::steady_clock::now();
-    usec = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-    std::cout << "5. time: " << usec/1000000000.0 << std::endl;
   }
 } // namespace parallel_sample_sort
 
