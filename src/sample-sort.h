@@ -39,7 +39,7 @@ namespace parallel_sample_sort {
   template <typename number>
   class RecursiveParallelizer {
     public:
-      RecursiveParallelizer(std::vector<int> &arr,
+      RecursiveParallelizer(std::vector<number> &arr,
               std::vector<int> &group_offsets, int lo) :  arr_(arr),
                                                group_offsets(group_offsets), lo_ (lo) {
 
@@ -52,7 +52,7 @@ namespace parallel_sample_sort {
       }
     private:
       std::vector<int> &group_offsets;
-      std::vector<int> &arr_;
+      std::vector<number> &arr_;
       int lo_;
   };
 

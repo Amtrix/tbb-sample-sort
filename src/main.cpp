@@ -50,7 +50,10 @@ int main(int argc, char** argv) {
   std::vector<number> arr;
   for (int i = 0; i < elem_count; ++i) {
       number num;
-      if (FLAGS_random) num = rand();
+      if (FLAGS_random) {
+        num = rand();
+        //num = rand()/(RAND_MAX/(1.0 * FLT_MAX)); //For float numbers
+      }
       else if (FLAGS_fill_descending) num = elem_count - i;
       else std::cin >> num;
       arr.push_back(num);
