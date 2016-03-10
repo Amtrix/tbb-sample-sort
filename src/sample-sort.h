@@ -42,18 +42,18 @@ namespace parallel_sample_sort {
   class RecursiveParallelizer {
     public:
       RecursiveParallelizer(std::vector<int> &arr,
-              std::vector<int> &pfx, int lo) :  arr_(arr),
-                                               pfx_(pfx), lo_ (lo) {
+              std::vector<int> &group_offsets, int lo) :  arr_(arr),
+                                               group_offsets(group_offsets), lo_ (lo) {
 
       }
 
       void operator()(const tbb::blocked_range<int>& range) const {
         for (int i = range.begin(); i != range.end(); ++i) {
-          std::sort(arr_.begin() + lo_ + pfx_[i], arr_.begin() + lo_ + pfx_[i+1]);
+          std::sort(arr_.begin() + lo_ + group_offsets[i], arr_.begin() + lo_ + group_offsets[i+1]);
         }
       }
     private:
-      std::vector<int> &pfx_;
+      std::vector<int> &group_offsets;
       std::vector<int> &arr_;
       int lo_;
   };
