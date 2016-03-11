@@ -28,7 +28,7 @@ namespace parallel_sample_sort {
           int low = 0;
           while(count > 0){
             int middle = low + count/2;
-            if(pivots[middle] < val){
+            if(pivots[middle] <= val){
               low = middle+1;
               count -= count/2 + 1;
             }else{

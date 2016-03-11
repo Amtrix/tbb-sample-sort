@@ -109,7 +109,7 @@ namespace parallel_sample_sort {
     for (int i = 1; i <= pecount; ++i) {
       group_offsets[i] = group_offsets[i-1] + group_counts[i-1];
     }
-    
+
     //Fourth: Move groups into the original array
     RegroupElementsGlobally<number> regroup_elements_globally(arr, threadLocalGroups, group_offsets);
     tbb::parallel_for(tbb::blocked_range<int>(0, pecount), regroup_elements_globally);
