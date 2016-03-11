@@ -52,7 +52,7 @@ void run() {
       if (FLAGS_random) {
         num = rand();
         if( FLAGS_use_floats) {
-          num /= (RAND_MAX/(1.0 * FLT_MAX));
+          num  = num/(1.0f * RAND_MAX)  * (1e10);
         }
       }
       else if (FLAGS_fill_zero) {
