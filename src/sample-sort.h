@@ -27,8 +27,8 @@ namespace parallel_sample_sort {
     sampleConst_ = 4.0/(EPS*EPS) * std::log(arr.size());
     sort_<number>(arr, 0, ((int)arr.size()) - 1);
   }
-
-  static void printArray(std::vector<int> &arr){
+  template <typename number>
+  static void printArray(std::vector<number> &arr){
     for(int i=0; i<arr.size();i++){
       std::cout << arr[i] << ",";
     }
@@ -87,11 +87,9 @@ namespace parallel_sample_sort {
 
 
     std::vector<number> pivots;
-
     // now select every sampleConst_-th for the final pivot sample;
     for (int i = 1; i < pecount; ++i)
       pivots.push_back(pivot_samples[i*sampleConst_]);
-
 
     ThreadLocalGroupsType<number> threadLocalGroups(//stores grouped elements per Thread
       [](){std::vector<std::vector<number>> v(pecount) ; return v;});
@@ -111,7 +109,7 @@ namespace parallel_sample_sort {
     for (int i = 1; i <= pecount; ++i) {
       group_offsets[i] = group_offsets[i-1] + group_counts[i-1];
     }
-
+    
     //Fourth: Move groups into the original array
     RegroupElementsGlobally<number> regroup_elements_globally(arr, threadLocalGroups, group_offsets);
     tbb::parallel_for(tbb::blocked_range<int>(0, pecount), regroup_elements_globally);

@@ -9,15 +9,18 @@
 #include <ctime>
 
 DEFINE_bool(random, false,
-              "If the array should be filled with random values");
+              "If the array should be filled with random values.");
 
-DEFINE_bool(fill_descending, false, "If the array should be filled with (n...1)");
+DEFINE_bool(fill_zero, false, "If the array should be filled with 0s");
+
+DEFINE_bool(use_floats, false, "If the generated numbers should be floats (int otherwise)");
 
 DEFINE_int32(num_threads, -1, "Specifies the number of threads that should be used for the execution. "
                               "Default: -1 for automatic.");
 
-typedef int number;
+DEFINE_int32(num_elements, 100000, "Specifies the number of elements that shall be sorted.");
 
+template <typename number>
 bool check_correctness(const std::vector<number> &arr, const std::vector<number>& parallel_sorted) {
   std::vector<number> stl_sorted(arr);
 
@@ -32,11 +35,8 @@ bool check_correctness(const std::vector<number> &arr, const std::vector<number>
           return false;
   return true;
 }
-
-int main(int argc, char** argv) {
-  google::ParseCommandLineFlags(&argc, &argv, true);
-  std::ios_base::sync_with_stdio(false);
-
+template <typename number>
+void run() {
   std::cout << "Initialized with " << FLAGS_num_threads << " threads." << std::endl;
   tbb::task_scheduler_init init(FLAGS_num_threads);
   int p = FLAGS_num_threads;
@@ -44,18 +44,24 @@ int main(int argc, char** argv) {
     p = tbb::task_scheduler_init::default_num_threads();
   }
 
-  number elem_count;
-  std::cin >> elem_count;
+  number elem_count = FLAGS_num_elements;
   std::srand(std::time(0)); // use current time as seed for random generator
   std::vector<number> arr;
   for (int i = 0; i < elem_count; ++i) {
       number num;
       if (FLAGS_random) {
         num = rand();
-        //num = rand()/(RAND_MAX/(1.0 * FLT_MAX)); //For float numbers
+        if( FLAGS_use_floats) {
+          num /= (RAND_MAX/(1.0 * FLT_MAX));
+        }
       }
-      else if (FLAGS_fill_descending) num = elem_count - i;
-      else std::cin >> num;
+      else if (FLAGS_fill_zero) {
+        num = 0;
+      }
+      else {
+        std::cerr << "Missing parameter for the type of array values (random or zero)." << std::endl;
+        return;
+      }
       arr.push_back(num);
   }
   std::vector<number> parallel_sorted(arr);
@@ -69,4 +75,15 @@ int main(int argc, char** argv) {
 
   if (correctness) std::cout << "Correct." << std::endl;
   else std::cout << "Incorrect resulting order." << std::endl;
+}
+
+int main(int argc, char** argv) {
+  google::ParseCommandLineFlags(&argc, &argv, true);
+  std::ios_base::sync_with_stdio(false);
+
+  if(FLAGS_use_floats){
+    run<float>();
+  } else {
+    run<int>();
+  }
 }
