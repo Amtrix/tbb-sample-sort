@@ -1,11 +1,11 @@
 #!/bin/bash
 minelemsize=100000
-maxelemsize=1000000
+maxelemsize=100000000
 minthreadcount=1
 maxthreadcount=8
 types=(float int)
 generators=(zero random)
-iterations=20
+iterations=10
 rm run.log
 touch run.log
 
