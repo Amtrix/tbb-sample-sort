@@ -1,80 +1,47 @@
 Initialized with 1 threads.
-Time: 0.036583
-STL sort time: 0.0314857
 Correct.
-RESULT algo=sample_sort time=0.036583 size=100000 generator=zero elementtype=float threads=1
-RESULT algo=std::sort time=0.0314857 size=100000 generator=zero elementtype=float threads=1
+RESULT algo=sample_sort time=0.0234779 size=100000 generator=zero type=float threads=1
+RESULT algo=std::sort time=0.0235209 size=100000 generator=zero type=float threads=1
 Initialized with 1 threads.
-Time: 0.0423079
-STL sort time: 0.0365056
 Correct.
-RESULT algo=sample_sort time=0.0423079 size=100000 generator=random elementtype=float threads=1
-RESULT algo=std::sort time=0.0365056 size=100000 generator=random elementtype=float threads=1
+RESULT algo=sample_sort time=0.033428 size=100000 generator=random type=float threads=1
+RESULT algo=std::sort time=0.0322556 size=100000 generator=random type=float threads=1
 Initialized with 1 threads.
-Time: 0.0421684
-STL sort time: 0.0352064
 Correct.
-RESULT algo=sample_sort time=0.0421684 size=100000 generator=zero elementtype=int threads=1
-RESULT algo=std::sort time=0.0352064 size=100000 generator=zero elementtype=int threads=1
+RESULT algo=sample_sort time=0.0215821 size=100000 generator=zero type=int threads=1
+RESULT algo=std::sort time=0.0213249 size=100000 generator=zero type=int threads=1
 Initialized with 1 threads.
-Time: 0.0390278
-STL sort time: 0.0340232
 Correct.
-RESULT algo=sample_sort time=0.0390278 size=100000 generator=random elementtype=int threads=1
-RESULT algo=std::sort time=0.0340232 size=100000 generator=random elementtype=int threads=1
+RESULT algo=sample_sort time=0.0327588 size=100000 generator=random type=int threads=1
+RESULT algo=std::sort time=0.0309416 size=100000 generator=random type=int threads=1
 Initialized with 2 threads.
-Time: 0.0458577
-STL sort time: 0.0310697
 Correct.
-RESULT algo=sample_sort time=0.0458577 size=100000 generator=zero elementtype=float threads=2
-RESULT algo=std::sort time=0.0310697 size=100000 generator=zero elementtype=float threads=2
+RESULT algo=sample_sort time=0.0313504 size=100000 generator=zero type=float threads=2
 Initialized with 2 threads.
-Time: 0.0287256
-STL sort time: 0.0356768
 Correct.
-RESULT algo=sample_sort time=0.0287256 size=100000 generator=random elementtype=float threads=2
-RESULT algo=std::sort time=0.0356768 size=100000 generator=random elementtype=float threads=2
+RESULT algo=sample_sort time=0.021965 size=100000 generator=random type=float threads=2
 Initialized with 2 threads.
-Time: 0.0281244
-STL sort time: 0.0219261
 Correct.
-RESULT algo=sample_sort time=0.0281244 size=100000 generator=zero elementtype=int threads=2
-RESULT algo=std::sort time=0.0219261 size=100000 generator=zero elementtype=int threads=2
+RESULT algo=sample_sort time=0.0282869 size=100000 generator=zero type=int threads=2
 Initialized with 2 threads.
-Time: 0.0206047
-STL sort time: 0.0294947
 Correct.
-RESULT algo=sample_sort time=0.0206047 size=100000 generator=random elementtype=int threads=2
-RESULT algo=std::sort time=0.0294947 size=100000 generator=random elementtype=int threads=2
+RESULT algo=sample_sort time=0.0199933 size=100000 generator=random type=int threads=2
 Initialized with 4 threads.
-Time: 0.0314949
-STL sort time: 0.0234492
 Correct.
-RESULT algo=sample_sort time=0.0314949 size=100000 generator=zero elementtype=float threads=4
-RESULT algo=std::sort time=0.0234492 size=100000 generator=zero elementtype=float threads=4
+RESULT algo=sample_sort time=0.0333006 size=100000 generator=zero type=float threads=4
 Initialized with 4 threads.
-Time: 0.0160993
-STL sort time: 0.0315471
 Correct.
-RESULT algo=sample_sort time=0.0160993 size=100000 generator=random elementtype=float threads=4
-RESULT algo=std::sort time=0.0315471 size=100000 generator=random elementtype=float threads=4
+RESULT algo=sample_sort time=0.0194903 size=100000 generator=random type=float threads=4
 Initialized with 4 threads.
-Time: 0.0301571
-STL sort time: 0.0310422
 Correct.
-RESULT algo=sample_sort time=0.0301571 size=100000 generator=zero elementtype=int threads=4
-RESULT algo=std::sort time=0.0310422 size=100000 generator=zero elementtype=int threads=4
+RESULT algo=sample_sort time=0.0309019 size=100000 generator=zero type=int threads=4
 Initialized with 4 threads.
-Time: 0.0209844
-STL sort time: 0.0301131
 Correct.
-RESULT algo=sample_sort time=0.0209844 size=100000 generator=random elementtype=int threads=4
-RESULT algo=std::sort time=0.0301131 size=100000 generator=random elementtype=int threads=4
+RESULT algo=sample_sort time=0.0152377 size=100000 generator=random type=int threads=4
 Initialized with 8 threads.
-Time: 0.0469186
-STL sort time: 0.0263519
 Correct.
-RESULT algo=sample_sort time=0.0469186 size=100000 generator=zero elementtype=float threads=8
-RESULT algo=std::sort time=0.0263519 size=100000 generator=zero elementtype=float threads=8
+RESULT algo=sample_sort time=0.0451282 size=100000 generator=zero type=float threads=8
 Initialized with 8 threads.
-Time: 0.0273521
+Correct.
+RESULT algo=sample_sort time=0.0274028 size=100000 generator=random type=float threads=8
+Initialized with 8 threads.

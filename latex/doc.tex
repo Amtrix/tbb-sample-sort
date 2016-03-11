@@ -37,15 +37,16 @@
 
 \title{\doctype}
 \author{Damir Ferizovic, David Vogelbacher}
-\institute{Karlsruhe Institute of Technology, Karlsruhe, Germany}
+\institute{	Karlsruhe Institute of Technology, Karlsruhe, Germany\\
+	\email{\{damir.ferizovic, david.vogelbacher\}@kit.edu}}
+
+
 \begin{document}
 
 %% sp-process: load data in sql-table 'stats'
 % IMPORT-DATA stats ../run.log
 
-%% DEFMACRO REFORMAT(precision=0)
-%% SELECT MAX(it) AS iterationcnt FROM stats
-\def\iterationcnt{49}
+\def\iterationcnt{10}
 
 \maketitle
 
@@ -99,16 +100,15 @@ Interpretation.
 \pgfplotsset{compat=1.5}
 \begin{tikzpicture}[scale=0.7]
   \begin{axis}[
-    title={Your title.},
-    xlabel={Item Count [$n$]},
-    ylabel={Run Time per Item [Microseconds / Item]},
+    xlabel={Element Count [$m$]},
+    ylabel={Running time in ms},
     legend pos=north west,
     xmode=log,
-    log basis x={2},
+    log basis x={10},
     ] 
-    %% MULTIPLOT(threads) SELECT n AS x, (avg("wall-time") * 1.0 / n) AS y, MULTIPLOT
+    %% MULTIPLOT(threads) SELECT size AS x, time AS y, MULTIPLOT
     %% FROM stats
-    %% WHERE it > 0 AND "input-type"='uniform'
+    %% WHERE "algo"='sample_sort' AND "generator"='random' AND "elementtype"='int'
     %% GROUP BY MULTIPLOT,x ORDER BY MULTIPLOT,x
     \addplot coordinates { (1,68.9184) (2,41.051) (4,29.2245) (8,21.9923) (16,17.3635) (32,21.3559) (64,23.9168) (128,30.1534) (256,28.718) (512,32.3257) (1024,37.6145) (2048,37.0117) (4096,39.8958) (8192,47.0518) (16384,50.1463) (32768,51.4022) (65536,52.608) (131072,55.6079) (262144,58.9654) (524288,60.9108) (1048576,63.3207) (2097152,66.2327) (4194304,69.4725) (8388608,72.6896) (16777216,75.779) };
     \addlegendentry{threads=1};
@@ -118,8 +118,8 @@ Interpretation.
     \addlegendentry{threads=4};
   \end{axis}
 \end{tikzpicture}
-\caption{Running times of \texttt{std::sort} with uniform input. Mean of \iterationcnt~iterations.}
-\label{fi:runningtime:uniform}
+\caption{Running times of \texttt{std::sort} and sample sort for random input of type Integer. Mean of \iterationcnt~iterations.}
+\label{fi:runningtime:random"}
 \end{figure}
 
 
@@ -128,20 +128,20 @@ Interpretation.
 \pgfplotsset{compat=1.5}
 \begin{tikzpicture}[scale=0.7]
   \begin{axis}[
-    title={Your title.},
-    xlabel={Item Count [$n$]},
+    xlabel={Element Count [$m$]},
     ylabel={Speedup},
     legend pos=north west,
     xmode=log,
-    log basis x={2},
+    log basis x={10},
     ] 
-    %% MULTIPLOT(threads) SELECT s.n AS x, avg(s1."wall-time" * 1.0 / s1.n) / avg(s."wall-time" * 1.0 / s.n) AS y, s.threads
+    %% MULTIPLOT(threads) SELECT s.size AS x, s1.time / s.time AS y, s.threads
     %% FROM stats s CROSS JOIN stats s1
-    %% WHERE s.it > 0
-    %% AND s.it = s1.it
-    %% AND s."input-type"='uniform'
-    %% AND s."input-type" = s1."input-type"
-    %% AND s.n = s1.n
+    %% WHERE 
+    %% AND s."elementtype"='int'
+    %% AND s."elementtype" = s1."elementtype"
+    %% AND s."generator"='random'
+    %% AND s."generator" = s1."generator"
+    %% AND s.size = s1.size
     %% AND s1.threads=1
     %% GROUP BY s.threads,x ORDER BY s.threads,x
     \addplot coordinates { (1,1.0) (2,1.0) (4,1.0) (8,1.0) (16,1.0) (32,1.0) (64,1.0) (128,1.0) (256,1.0) (512,1.0) (1024,1.0) (2048,1.0) (4096,1.0) (8192,1.0) (16384,1.0) (32768,1.0) (65536,1.0) (131072,1.0) (262144,1.0) (524288,1.0) (1048576,1.0) (2097152,1.0) (4194304,1.0) (8388608,1.0) (16777216,1.0) };
@@ -153,73 +153,11 @@ Interpretation.
   \end{axis}
 \end{tikzpicture}
 \caption{Speedup of \texttt{std::sort} with uniform input. Mean of \iterationcnt~iterations.}
-\label{fi:speedup:uniform}
-\end{figure}
-
-\begin{figure}[h!]
-\centering
-\pgfplotsset{compat=1.5}
-\begin{tikzpicture}[scale=0.7]
-  \begin{axis}[
-    title={Your title.},
-    xlabel={Item Count [$n$]},
-    ylabel={Run Time per Item [Microseconds / Item]},
-    legend pos=north west,
-    xmode=log,
-    log basis x={2},
-    ] 
-    %% MULTIPLOT(threads) SELECT n AS x, (avg("wall-time") * 1.0 / n) AS y, MULTIPLOT
-    %% FROM stats
-    %% WHERE it > 0 AND "input-type"='zero'
-    %% GROUP BY MULTIPLOT,x ORDER BY MULTIPLOT,x
-    \addplot coordinates { (1,59.1224) (2,30.9796) (4,21.8265) (8,11.9209) (16,7.09056) (32,5.34566) (64,5.19962) (128,5.00861) (256,5.25446) (512,5.64086) (1024,7.23978) (2048,6.64548) (4096,6.97808) (8192,9.71523) (16384,9.64844) (32768,8.91668) (65536,9.8838) (131072,10.3389) (262144,11.0777) (524288,11.7254) (1048576,12.238) (2097152,12.7436) (4194304,13.6581) (8388608,14.5377) (16777216,15.5423) };
-    \addlegendentry{threads=1};
-    \addplot coordinates { (1,58.6531) (2,31.2857) (4,23.0816) (8,11.9056) (16,7.0625) (32,5.37819) (64,5.0979) (128,4.96588) (256,6.27814) (512,6.14369) (1024,6.76527) (2048,6.20691) (4096,6.02559) (8192,4.90197) (16384,4.12026) (32768,4.64462) (65536,4.82321) (131072,6.58003) (262144,6.8901) (524288,7.2455) (1048576,8.69293) (2097152,8.83068) (4194304,9.90955) (8388608,9.66025) (16777216,12.0422) };
-    \addlegendentry{threads=2};
-    \addplot coordinates { (1,59.9184) (2,31.0102) (4,21.8418) (8,11.9668) (16,7.13776) (32,6.3074) (64,5.07366) (128,6.94691) (256,5.25853) (512,5.647) (1024,7.97106) (2048,5.31941) (4096,4.20933) (8192,3.92275) (16384,4.11169) (32768,4.07114) (65536,4.3629) (131072,3.76322) (262144,4.11959) (524288,5.56066) (1048576,6.56961) (2097152,6.95608) (4194304,7.50942) (8388608,7.82932) (16777216,9.12275) };
-    \addlegendentry{threads=4};
-  \end{axis}
-\end{tikzpicture}
-\caption{Running times of \texttt{std::sort} with zero input. Mean of \iterationcnt~iterations.}
-\label{fi:runningtime:zero}
+\label{fi:speedup:random:int}
 \end{figure}
 
 
-\begin{figure}[h!]
-\centering
-\pgfplotsset{compat=1.5}
-\begin{tikzpicture}[scale=0.7]
-  \begin{axis}[
-    title={Your title.},
-    xlabel={Item Count [$n$]},
-    ylabel={Speedup},
-    legend pos=north west,
-    xmode=log,
-    log basis x={2},
-    ] 
-    %% MULTIPLOT(threads) SELECT s.n AS x, avg(s1."wall-time" * 1.0 / s1.n) / avg(s."wall-time" * 1.0 / s.n) AS y, s.threads
-    %% FROM stats s CROSS JOIN stats s1
-    %% WHERE s.it > 0
-    %% AND s.it = s1.it
-    %% AND s."input-type"='zero'
-    %% AND s."input-type" = s1."input-type"
-    %% AND s.n = s1.n
-    %% AND s1.threads=1
-    %% GROUP BY s.threads,x ORDER BY s.threads,x
-    \addplot coordinates { (1,1.0) (2,1.0) (4,1.0) (8,1.0) (16,1.0) (32,1.0) (64,1.0) (128,1.0) (256,1.0) (512,1.0) (1024,1.0) (2048,1.0) (4096,1.0) (8192,1.0) (16384,1.0) (32768,1.0) (65536,1.0) (131072,1.0) (262144,1.0) (524288,1.0) (1048576,1.0) (2097152,1.0) (4194304,1.0) (8388608,1.0) (16777216,1.0) };
-    \addlegendentry{threads=1};
-    \addplot coordinates { (1,1.008) (2,0.990215) (4,0.945623) (8,1.00129) (16,1.00397) (32,0.993952) (64,1.01995) (128,1.0086) (256,0.836946) (512,0.918155) (1024,1.07014) (2048,1.07066) (4096,1.15807) (8192,1.9819) (16384,2.34171) (32768,1.91979) (65536,2.04922) (131072,1.57125) (262144,1.60777) (524288,1.6183) (1048576,1.40781) (2097152,1.44311) (4194304,1.37827) (8388608,1.5049) (16777216,1.29065) };
-    \addlegendentry{threads=2};
-    \addplot coordinates { (1,0.986717) (2,0.999013) (4,0.999299) (8,0.996163) (16,0.993388) (32,0.847523) (64,1.02483) (128,0.720984) (256,0.999227) (512,0.998913) (1024,0.908257) (2048,1.24929) (4096,1.65776) (8192,2.47664) (16384,2.34659) (32768,2.19022) (65536,2.26542) (131072,2.74735) (262144,2.68903) (524288,2.10862) (1048576,1.86282) (2097152,1.83201) (4194304,1.81879) (8388608,1.85683) (16777216,1.70473) };
-    \addlegendentry{threads=4};
-
-  \end{axis}
-\end{tikzpicture}
-\caption{Speedup of \texttt{std::sort} with zero input. Mean of \iterationcnt~iterations.}
-\label{fi:speedup:zero}
-\end{figure}
-
-\bibliographystyle{splncs03}
-\bibliography{/home/axtman/promotion/latex/library}
+%\bibliographystyle{splncs03}
+%\bibliography{/home/axtman/promotion/latex/library}
 
 \end{document}

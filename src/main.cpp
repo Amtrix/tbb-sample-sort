@@ -20,6 +20,8 @@ DEFINE_int32(num_elements, 100000, "Specifies the number of elements that shall 
 
 DEFINE_int32(iterations, 20, "Specifies the number of iterations that shall be sorted to calculate average sorting time.");
 
+DEFINE_bool(compare_stl, false, "Whether or not the array shall also be sorted with std::sort and corectness shall be checked.");
+
 void printResultHelper(std::string algo, float sec, int p) {
   std::string elementtype = "int";
   if(FLAGS_type == "float") {
@@ -34,14 +36,15 @@ void printResultHelper(std::string algo, float sec, int p) {
           << " time=" << sec
           << " size=" << FLAGS_num_elements
           << " generator=" << generator
-          << " elementtype=" << elementtype
+          << " type=" << elementtype
           << " threads=" << p
           << std::endl;
 }
 
 void printResult(float sec_stl, float sec_parallel, int p) {
   printResultHelper("sample_sort", sec_parallel, p);
-  printResultHelper("std::sort", sec_stl, p);
+  if(FLAGS_compare_stl)
+    printResultHelper("std::sort", sec_stl, p);
 }
 
 template <typename number>
@@ -86,16 +89,19 @@ std::pair<float,float> run(int p) {
     //std::cout << "Time: " << sec_parallel << std::endl;
     samplesort_time += sec_parallel;
 
-    std::vector<number> stl_sorted(arr);
+    if(FLAGS_compare_stl) {
+      std::vector<number> stl_sorted(arr);
 
-    start = std::chrono::steady_clock::now();
-    std::sort(stl_sorted.begin(), stl_sorted.end());
-    end = std::chrono::steady_clock::now();
-    float sec_stl = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()/1000000000.0;
-    //std::cout << "STL sort time: " << sec_stl << std::endl;
-    stl_time += sec_stl;
+      start = std::chrono::steady_clock::now();
+      std::sort(stl_sorted.begin(), stl_sorted.end());
+      end = std::chrono::steady_clock::now();
+      float sec_stl = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()/1000000000.0;
+      //std::cout << "STL sort time: " << sec_stl << std::endl;
+      stl_time += sec_stl;
 
-    correctness = correctness && check_correctness(stl_sorted, parallel_sorted);
+      correctness = correctness && check_correctness(stl_sorted, parallel_sorted);
+    }
+
   }
 
   if (correctness) {
