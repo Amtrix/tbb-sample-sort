@@ -60,17 +60,18 @@ We benchmark our implementation of the parallel sample sort algorithm using the 
 \section{Algorithm - Sample Sort}
 Let $p$ be the number of available threads. At the beginning of the sample sort algorithm, the input data is divided into $p$ groups ($p$ being the number of available threads) by using multiple pivot elements (similar to Quicksort). Then, each thread sorts one of the groups locally. The end result is just the concatenation of the local results.  In order to split the input, $p-1$ pivot elements are selected and the elements of the input are grouped into $p$ groups according to these pivot elements. Then, each thread sorts one of the groups. In order to get good pivot elements, oversampling is used: Initially, more than $S\cdot p$ elements are selected randomly as possible pivot elements for a constant $S$. These elements are then sorted (sequentially because the number of these elements is still small). After that, every $S$th element is selected as pivot element. This oversampling helps finding good pivot elements, such that the resulting groups are are of similar size with high probability.
 
-\section{Inplementation Details}
-
+\section{Implementation Details}
 \subsection{Pivot selection}
 We randomly select $S \cdot p$ elements as possible pivot elements, where $S=4\cdot \frac{\log m}{0.1^2}$ ($m$ is the size of the input). We chose the value $S$ according to the lecture \footnote{http://algo2.iti.kit.edu/sanders/courses/paralg15/}. The value of $0.1$ for the parameter $\varepsilon$ was found to be quite good but other, similar values work as well. \\
 We then sort the possible pivot elements using the sequential STL sorting algorithm (for large inputs with a large number of possible pivot elements one could recursively use sample sort). Lastly, we select every $S$th element as pivot element.
 \subsection{Grouping of elements}
-First, we calculate the group of each element by executing a \emph{parallel-for-loop} over the number of elements. Each iteration of the for-loop calculates the group to which the element belongs. We also store the element in a two-dimensional ThreadLocal array, where the first dimension is for each group and the second for the different elements of the group. \\
-Second, using a \emph{parallel-for-loop} over the number of threads, each thread calculates the number of elements that belong to its group by looping over all arrays that were previously stored thread locally and summing the amount of elements that belong to its group.  \\
+First, we calculate the group of each element by executing a \emph{parallel-for-loop} over the number of elements. Each iteration of the for-loop calculates the group to which the element belongs. We also store the element in a two-dimensional ThreadLocal array, where the first dimension is for each group and the second for the different elements of the group. \par
+Second, using a \emph{parallel-for-loop} over the number of threads, each thread calculates the number of elements that belong to its group by looping over all arrays that were previously stored thread locally and summing the amount of elements that belong to its group.  \par
 Lastly, each thread moves the elements belonging to its group into the right place in the original array. Elements of group $i$ are stored beginning at index  $\sum_{j=0}^{i-1}\text{groupsize}[j]$. Thus, after this step the original array is reordered in a way that elements belonging to the same group are stored next to each other.
 \subsection{Local sorting}
 As a last step, we sort all groups locally using the STL sorting algorithm and are finished.
+\subsection{Special Cases}
+When only one thread is used, our implementation just uses the STL sorting algorithm. We also use the STL sorting algorithm directly if the number of possible pivot elements exceeds the number of elements. This happens for small (less than $30000s$) input sizes.
 \section{Experimental Results}
 \subsection{Hardware}
 \begin{itemize}
@@ -84,42 +85,42 @@ As a last step, we sort all groups locally using the STL sorting algorithm and a
 We benchmarked our implementation of sample sort and the STL sort using combinations of the following parameters:
 \begin{itemize}
 	\item Type of elements to be sorted: 32-bit Integer or 32-bit float
-	\item Generator for elements: Either random or all zero
+	\item Generator for elements: Either random  (using \emph{rand()})or all zero
 	\item Number of threads: 1,2,4,8
 	\item Number of elements: From $10^5$ to $10^8$ in magnitudes of $10$
 \end{itemize}
 
 \subsection{Plots}
-
-Running time~\ref{fi:runningtime:uniform} and speedup plots~\ref{fi:speedup:uniform} (for each generator, 64-bit integer and 32-bit floating point (not for  non-comparative integer sorting algorithms).
-
-Interpretation.
-
+In \ref{fi:runningtime:random:int} you can see the running time of sample sort (and STL sort when the number of threads is one) for randomly generated input of type Integer. You can see, that our implementation of sample sort scales well with the number of threads. This is made more explicit in \ref{fi:speedup:random:int} where you can see the speedup of sample sort with multiple threads compared to STL sort with a single thread. For large input sizes, sample sort with four threads achieves a speedup of roughly $3.5$ and eight threads get us to roughly $4.5$. Eight threads are not much better than four threads. This is possibly due to the fact that the processor has only four cores and they don't have much idle time because they all sort roughly the same number of elements. Thus, the additional Hyperthreads per Core don't bring much advantage. The speedup from one to two to four threads is nearly linear. \par
+Figures \ref{fi:runningtime:random:float} and  \ref{fi:speedup:random:float} show the same for random generated input of type Float. The results here are very similar to the results for Integers. The sort-time is in general just a bit higher than the sort time for Integers. \par
+Figures \ref{fi:runningtime:zero:int} and  \ref{fi:speedup:zero:int} show the sorting time for zero input of type Integer. Here, sample sort is always a bit slower than STL sort. This is due to the fact that the bucketing of elements into different groups based on the pivot elements fails here: All elements land in the same group. Thus, one thread has to sort all elements and the others are idle. Hence, the time needed is the time of the STL sort plus some small overhead. 
 \begin{figure}[h!]
 \centering
 \pgfplotsset{compat=1.5}
 \begin{tikzpicture}[scale=0.7]
   \begin{axis}[
     xlabel={Element Count [$m$]},
-    ylabel={Running time in ms},
+    ylabel={Running time in s},
     legend pos=north west,
     xmode=log,
     log basis x={10},
     ] 
     %% MULTIPLOT(threads) SELECT size AS x, time AS y, MULTIPLOT
     %% FROM stats
-    %% WHERE "algo"='sample_sort' AND "generator"='random' AND "elementtype"='int'
+    %% WHERE "algo"='sample_sort' AND "generator"='random' AND "type"='int'
     %% GROUP BY MULTIPLOT,x ORDER BY MULTIPLOT,x
-    \addplot coordinates { (1,68.9184) (2,41.051) (4,29.2245) (8,21.9923) (16,17.3635) (32,21.3559) (64,23.9168) (128,30.1534) (256,28.718) (512,32.3257) (1024,37.6145) (2048,37.0117) (4096,39.8958) (8192,47.0518) (16384,50.1463) (32768,51.4022) (65536,52.608) (131072,55.6079) (262144,58.9654) (524288,60.9108) (1048576,63.3207) (2097152,66.2327) (4194304,69.4725) (8388608,72.6896) (16777216,75.779) };
+    \addplot coordinates { (100000,0.0288805) (1000000,0.344186) (10000000,3.97929) };
     \addlegendentry{threads=1};
-    \addplot coordinates { (1,65.449) (2,39.2551) (4,30.2806) (8,22.1556) (16,17.5) (32,21.4107) (64,27.7793) (128,26.1878) (256,29.7938) (512,32.3103) (1024,25.8488) (2048,25.9984) (4096,27.4117) (8192,26.1937) (16384,25.3417) (32768,27.3201) (65536,28.1916) (131072,29.1522) (262144,32.5654) (524288,34.2473) (1048576,35.2319) (2097152,36.6229) (4194304,38.1059) (8388608,38.5562) (16777216,42.1755) };
+    \addplot coordinates { (100000,0.0214051) (1000000,0.196173) (10000000,2.20744) };
     \addlegendentry{threads=2};
-    \addplot coordinates { (1,68.9796) (2,41.8265) (4,30.8112) (8,22.4923) (16,17.3571) (32,21.2519) (64,23.985) (128,26.2626) (256,31.9619) (512,32.4381) (1024,61.0072) (2048,54.9473) (4096,28.8268) (8192,23.8018) (16384,18.4491) (32768,22.4511) (65536,17.478) (131072,15.1969) (262144,17.0806) (524288,17.5748) (1048576,18.7493) (2097152,18.9607) (4194304,20.1748) (8388608,20.0965) (16777216,22.7603) };
+    \addplot coordinates { (100000,0.0169053) (1000000,0.111962) (10000000,1.12908) };
     \addlegendentry{threads=4};
+    \addplot coordinates { (100000,0.0270652) (1000000,0.105403) (10000000,0.901718) };
+    \addlegendentry{threads=8};
   \end{axis}
 \end{tikzpicture}
-\caption{Running times of \texttt{std::sort} and sample sort for random input of type Integer. Mean of \iterationcnt~iterations.}
-\label{fi:runningtime:random"}
+\caption{Running times of sample sort for random input of type Integer. Mean of \iterationcnt~iterations. The curve for thread=$1$ shows the running time of \texttt{std::sort}.}
+\label{fi:runningtime:random:int}
 \end{figure}
 
 
@@ -137,23 +138,161 @@ Interpretation.
     %% MULTIPLOT(threads) SELECT s.size AS x, s1.time / s.time AS y, s.threads
     %% FROM stats s CROSS JOIN stats s1
     %% WHERE 
-    %% AND s."elementtype"='int'
-    %% AND s."elementtype" = s1."elementtype"
+    %% s."type"='int'
+    %% AND s."type" = s1."type"
     %% AND s."generator"='random'
     %% AND s."generator" = s1."generator"
+    %% AND s."algo"='sample_sort'
+    %% AND s."algo" = s1."algo"
     %% AND s.size = s1.size
     %% AND s1.threads=1
     %% GROUP BY s.threads,x ORDER BY s.threads,x
-    \addplot coordinates { (1,1.0) (2,1.0) (4,1.0) (8,1.0) (16,1.0) (32,1.0) (64,1.0) (128,1.0) (256,1.0) (512,1.0) (1024,1.0) (2048,1.0) (4096,1.0) (8192,1.0) (16384,1.0) (32768,1.0) (65536,1.0) (131072,1.0) (262144,1.0) (524288,1.0) (1048576,1.0) (2097152,1.0) (4194304,1.0) (8388608,1.0) (16777216,1.0) };
+    \addplot coordinates { (100000,1.0) (1000000,1.0) (10000000,1.0) };
     \addlegendentry{threads=1};
-    \addplot coordinates { (1,1.05301) (2,1.04575) (4,0.965122) (8,0.992631) (16,0.992201) (32,0.997438) (64,0.860956) (128,1.15143) (256,0.963889) (512,1.00048) (1024,1.45518) (2048,1.42361) (4096,1.45543) (8192,1.7963) (16384,1.9788) (32768,1.88148) (65536,1.86608) (131072,1.9075) (262144,1.81068) (524288,1.77856) (1048576,1.79725) (2097152,1.8085) (4194304,1.82315) (8388608,1.88529) (16777216,1.79675) };
+    \addplot coordinates { (100000,1.34923) (1000000,1.7545) (10000000,1.80267) };
     \addlegendentry{threads=2};
-    \addplot coordinates { (1,0.999112) (2,0.981459) (4,0.948501) (8,0.97777) (16,1.00037) (32,1.00489) (64,0.997155) (128,1.14815) (256,0.898506) (512,0.996537) (1024,0.616558) (2048,0.673586) (4096,1.38398) (8192,1.97682) (16384,2.71809) (32768,2.28951) (65536,3.00995) (131072,3.65916) (262144,3.45219) (524288,3.46581) (1048576,3.37722) (2097152,3.49315) (4194304,3.44354) (8388608,3.61703) (16777216,3.32945) };
+    \addplot coordinates { (100000,1.70837) (1000000,3.07413) (10000000,3.52436) };
     \addlegendentry{threads=4};
+    \addplot coordinates { (100000,1.06707) (1000000,3.26543) (10000000,4.41301) };
+    \addlegendentry{threads=8};
   \end{axis}
 \end{tikzpicture}
-\caption{Speedup of \texttt{std::sort} with uniform input. Mean of \iterationcnt~iterations.}
+\caption{Speedup of sample sort for random input of type Integer. Mean of \iterationcnt~iterations. The base case of thread=$1$ is just the running time of sample sort.}
 \label{fi:speedup:random:int}
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\pgfplotsset{compat=1.5}
+	\begin{tikzpicture}[scale=0.7]
+	\begin{axis}[
+	xlabel={Element Count [$m$]},
+	ylabel={Running time in s},
+	legend pos=north west,
+	xmode=log,
+	log basis x={10},
+	] 
+	%% MULTIPLOT(threads) SELECT size AS x, time AS y, MULTIPLOT
+	%% FROM stats
+	%% WHERE "algo"='sample_sort' AND "generator"='random' AND "type"='float'
+	%% GROUP BY MULTIPLOT,x ORDER BY MULTIPLOT,x
+ \addplot coordinates { (100000,0.0310199) (1000000,0.372951) (10000000,4.26784) };
+ \addlegendentry{threads=1};
+ \addplot coordinates { (100000,0.0216451) (1000000,0.210432) (10000000,2.38692) };
+ \addlegendentry{threads=2};
+ \addplot coordinates { (100000,0.0197922) (1000000,0.140355) (10000000,1.20216) };
+ \addlegendentry{threads=4};
+ \addplot coordinates { (100000,0.0278614) (1000000,0.10454) (10000000,0.931351) };
+ \addlegendentry{threads=8};
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Running times of sample sort for random input of type float. Mean of \iterationcnt~iterations. The curve for thread=$1$ shows the running time of \texttt{std::sort}.}
+	\label{fi:runningtime:random:float}
+\end{figure}
+
+
+\begin{figure}[h!]
+	\centering
+	\pgfplotsset{compat=1.5}
+	\begin{tikzpicture}[scale=0.7]
+	\begin{axis}[
+	xlabel={Element Count [$m$]},
+	ylabel={Speedup},
+	legend pos=north west,
+	xmode=log,
+	log basis x={10},
+	] 
+	%% MULTIPLOT(threads) SELECT s.size AS x, s1.time / s.time AS y, s.threads
+	%% FROM stats s CROSS JOIN stats s1
+	%% WHERE 
+	%% s."type"='float'
+	%% AND s."type" = s1."type"
+	%% AND s."generator"='random'
+	%% AND s."generator" = s1."generator"
+	%% AND s."algo"='sample_sort'
+	%% AND s."algo" = s1."algo"
+	%% AND s.size = s1.size
+	%% AND s1.threads=1
+	%% GROUP BY s.threads,x ORDER BY s.threads,x
+ \addplot coordinates { (100000,1.0) (1000000,1.0) (10000000,1.0) };
+ \addlegendentry{threads=1};
+ \addplot coordinates { (100000,1.43311) (1000000,1.77231) (10000000,1.78801) };
+ \addlegendentry{threads=2};
+ \addplot coordinates { (100000,1.56728) (1000000,2.6572) (10000000,3.55014) };
+ \addlegendentry{threads=4};
+ \addplot coordinates { (100000,1.11336) (1000000,3.56754) (10000000,4.58242) };
+ \addlegendentry{threads=8};
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Speedup of sample sort for random input of type float. Mean of \iterationcnt~iterations. The base case of thread=$1$ is just the running time of sample sort.}
+	\label{fi:speedup:random:float}
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\pgfplotsset{compat=1.5}
+	\begin{tikzpicture}[scale=0.7]
+	\begin{axis}[
+	xlabel={Element Count [$m$]},
+	ylabel={Running time in s},
+	legend pos=north west,
+	xmode=log,
+	log basis x={10},
+	] 
+	%% MULTIPLOT(threads) SELECT size AS x, time AS y, MULTIPLOT
+	%% FROM stats
+	%% WHERE "algo"='sample_sort' AND "generator"='zero' AND "type"='int'
+	%% GROUP BY MULTIPLOT,x ORDER BY MULTIPLOT,x
+ \addplot coordinates { (100000,0.0226938) (1000000,0.255372) (10000000,3.16578) };
+ \addlegendentry{threads=1};
+ \addplot coordinates { (100000,0.0268733) (1000000,0.284222) (10000000,3.42253) };
+ \addlegendentry{threads=2};
+ \addplot coordinates { (100000,0.0291582) (1000000,0.277352) (10000000,3.29701) };
+ \addlegendentry{threads=4};
+ \addplot coordinates { (100000,0.0443326) (1000000,0.290168) (10000000,3.30086) };
+ \addlegendentry{threads=8};
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Running times of sample sort for zero input of type Integer. Mean of \iterationcnt~iterations. The curve for thread=$1$ shows the running time of \texttt{std::sort}.}
+	\label{fi:runningtime:zero:int}
+\end{figure}
+
+
+\begin{figure}[h!]
+	\centering
+	\pgfplotsset{compat=1.5}
+	\begin{tikzpicture}[scale=0.7]
+	\begin{axis}[
+	xlabel={Element Count [$m$]},
+	ylabel={Speedup},
+	legend pos=north west,
+	xmode=log,
+	log basis x={10},
+	] 
+	%% MULTIPLOT(threads) SELECT s.size AS x, s1.time / s.time AS y, s.threads
+	%% FROM stats s CROSS JOIN stats s1
+	%% WHERE 
+	%% s."type"='int'
+	%% AND s."type" = s1."type"
+	%% AND s."generator"='zero'
+	%% AND s."generator" = s1."generator"
+	%% AND s."algo"='sample_sort'
+	%% AND s."algo" = s1."algo"
+	%% AND s.size = s1.size
+	%% AND s1.threads=1
+	%% GROUP BY s.threads,x ORDER BY s.threads,x
+ \addplot coordinates { (100000,1.0) (1000000,1.0) (10000000,1.0) };
+ \addlegendentry{threads=1};
+ \addplot coordinates { (100000,0.844474) (1000000,0.898495) (10000000,0.924982) };
+ \addlegendentry{threads=2};
+ \addplot coordinates { (100000,0.778299) (1000000,0.920751) (10000000,0.960197) };
+ \addlegendentry{threads=4};
+ \addplot coordinates { (100000,0.511899) (1000000,0.880083) (10000000,0.959077) };
+ \addlegendentry{threads=8};
+	\end{axis}
+	\end{tikzpicture}
+	\caption{Speedup of sample sort for random input of type Integer. Mean of \iterationcnt~iterations. The base case of thread=$1$ is just the running time of sample sort.}
+	\label{fi:speedup:zero:int}
 \end{figure}
 
 
