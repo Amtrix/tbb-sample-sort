@@ -13,7 +13,7 @@
   baseline=(current bounding box.center)
 }
 
-\newcommand{\doctype}{MCSTL Sort}
+\newcommand{\doctype}{Sample Sort with TBB}
 
 \usepackage{hyperref}
 \hypersetup{
@@ -36,11 +36,8 @@
 \usepackage{breakurl}
 
 \title{\doctype}
-\author{Michael Axtmann}
-\institute{
-Karlsruhe Institute of Technology, Karlsruhe, Germany\\
-\email{\{michael.axtmann\}@kit.edu}}
-
+\author{Damir Ferizovic, David Vogelbacher}
+\institute{Karlsruhe Institute of Technology, Karlsruhe, Germany}
 \begin{document}
 
 %% sp-process: load data in sql-table 'stats'
@@ -53,18 +50,22 @@ Karlsruhe Institute of Technology, Karlsruhe, Germany\\
 \maketitle
 
 \begin{abstract}
-Compare ... MCSTL und stdlib.
+In this paper we are going to compare our implementation of the parallel sample sort algorithm using the Intel TBB framework with the standard STL algorithm. 
 \end{abstract}
 
 % Final Submit TODO: remove this prior to FINAL submission
 \pagestyle{plain}
 
 \section{Algorithm}
-Explain your algorithm.
+Sample sort is a parallel sorting algorithm that only distributes the input onto the the different threads once and then all threads sort their elements locally. The end result is then just the concatenation of the local results. Let $p$ be the amount of available threads. In order to split the input, $p-1$ pivot elemens are selected and the elements of the input are grouped into $p$ groups, depending on in between which pivot elements they lie (similiar to quicksort). Then, each thread sorts on of the groups. In order to get good pivot elements, oversampling is used. Initially, more than $S*p$ elements are selected randomly as possible pivot elements for a constant $S$. These elements are then sorted (sequentially, because the amount is still small). After that, every $S$th element is selected as pivot. This oversampling helps finding good pivot elements with high probability, such that the resulting groups are of similar size.
 
 \section{Inplementation Details}
 
-Details.
+\subsection{Pivot selection}
+
+\subsection{Grouping of elements}
+
+\subsection{Local sorting}
 
 \section{Experimental Results}
 
