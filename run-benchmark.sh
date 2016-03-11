@@ -1,11 +1,33 @@
 #!/bin/bash
-g++ -std=c++14 ./main.cpp -O2 -fopenmp -D_GLIBCXX_PARALLEL -Wall -DNDEBUG
-minelsize=1
-maxelsize=33554432
-iterationcount=50
-threadcount=4
-#./a.out $minelsize $maxelsize $iterationcount $threadcount > run.log
-cd latex
-rm doc.pdf
-sp-process doc.tex; pdflatex doc.tex
-evince doc.pdf
+minelemsize=100000
+maxelemsize=1000000
+minthreadcount=1
+maxthreadcount=8
+types=(float int)
+generators=(zero random)
+iterations=20
+rm run.log
+touch run.log
+
+elemsize=$minelemsize
+while [  $elemsize -le $maxelemsize ]; do
+	echo Elemsize is $elemsize
+
+	threadcount=$minthreadcount
+	while [ $threadcount -le $maxthreadcount ]; do
+		echo Threadcount is $threadcount
+		
+		for type in "${types[@]}"; do
+			#echo Type is $type
+			for generator in "${generators[@]}"; do
+				#echo Generator is $generator
+				./build/tbb-sample-sort --generator $generator --type $type  --num_threads $threadcount --num_elements $elemsize --iterations $iterations >> run.log
+			done
+		done
+
+		let threadcount=threadcount*2
+	done
+
+        let elemsize=elemsize*10
+done
+
