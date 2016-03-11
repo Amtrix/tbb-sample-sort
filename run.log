@@ -1,47 +1,13 @@
 Initialized with 1 threads.
 Correct.
-RESULT algo=sample_sort time=0.0234779 size=100000 generator=zero type=float threads=1
-RESULT algo=std::sort time=0.0235209 size=100000 generator=zero type=float threads=1
+RESULT algo=sample_sort time=0.0253536 size=100000 generator=zero type=float threads=1
+RESULT algo=std::sort time=0.0243076 size=100000 generator=zero type=float threads=1
 Initialized with 1 threads.
 Correct.
-RESULT algo=sample_sort time=0.033428 size=100000 generator=random type=float threads=1
-RESULT algo=std::sort time=0.0322556 size=100000 generator=random type=float threads=1
+RESULT algo=sample_sort time=0.0315459 size=100000 generator=random type=float threads=1
+RESULT algo=std::sort time=0.0320418 size=100000 generator=random type=float threads=1
 Initialized with 1 threads.
 Correct.
-RESULT algo=sample_sort time=0.0215821 size=100000 generator=zero type=int threads=1
-RESULT algo=std::sort time=0.0213249 size=100000 generator=zero type=int threads=1
+RESULT algo=sample_sort time=0.0235968 size=100000 generator=zero type=int threads=1
+RESULT algo=std::sort time=0.0224744 size=100000 generator=zero type=int threads=1
 Initialized with 1 threads.
-Correct.
-RESULT algo=sample_sort time=0.0327588 size=100000 generator=random type=int threads=1
-RESULT algo=std::sort time=0.0309416 size=100000 generator=random type=int threads=1
-Initialized with 2 threads.
-Correct.
-RESULT algo=sample_sort time=0.0313504 size=100000 generator=zero type=float threads=2
-Initialized with 2 threads.
-Correct.
-RESULT algo=sample_sort time=0.021965 size=100000 generator=random type=float threads=2
-Initialized with 2 threads.
-Correct.
-RESULT algo=sample_sort time=0.0282869 size=100000 generator=zero type=int threads=2
-Initialized with 2 threads.
-Correct.
-RESULT algo=sample_sort time=0.0199933 size=100000 generator=random type=int threads=2
-Initialized with 4 threads.
-Correct.
-RESULT algo=sample_sort time=0.0333006 size=100000 generator=zero type=float threads=4
-Initialized with 4 threads.
-Correct.
-RESULT algo=sample_sort time=0.0194903 size=100000 generator=random type=float threads=4
-Initialized with 4 threads.
-Correct.
-RESULT algo=sample_sort time=0.0309019 size=100000 generator=zero type=int threads=4
-Initialized with 4 threads.
-Correct.
-RESULT algo=sample_sort time=0.0152377 size=100000 generator=random type=int threads=4
-Initialized with 8 threads.
-Correct.
-RESULT algo=sample_sort time=0.0451282 size=100000 generator=zero type=float threads=8
-Initialized with 8 threads.
-Correct.
-RESULT algo=sample_sort time=0.0274028 size=100000 generator=random type=float threads=8
-Initialized with 8 threads.

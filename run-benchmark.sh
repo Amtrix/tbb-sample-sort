@@ -23,7 +23,6 @@ while [  $elemsize -le $maxelemsize ]; do
 				#echo Generator is $generator
 				if [ $threadcount = 1 ]
 					then
-	               				echo STL
 						./build/tbb-sample-sort --generator $generator --type $type  --num_threads $threadcount --num_elements $elemsize --iterations $iterations --compare_stl true >> run.log
 					else
 						./build/tbb-sample-sort --generator $generator --type $type  --num_threads $threadcount --num_elements $elemsize --iterations $iterations >> run.log
