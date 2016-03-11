@@ -1,2 +1,7 @@
 build/*
 !build/.keep
+latex/*.aux
+latex/*.log
+latex/*.out
+latex/*.synctex.gz
+
