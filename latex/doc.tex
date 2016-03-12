@@ -58,7 +58,7 @@ We benchmark our implementation of the parallel sample sort algorithm using the 
 \pagestyle{plain}
 
 \section{Algorithm - Sample Sort}
-Let $p$ be the number of available threads. At the beginning of the sample sort algorithm, the input data is divided into $p$ groups ($p$ being the number of available threads) by using multiple pivot elements (similar to Quicksort). Then, each thread sorts one of the groups locally. The end result is just the concatenation of the local results.  In order to split the input, $p-1$ pivot elements are selected and the elements of the input are grouped into $p$ groups according to these pivot elements. Then, each thread sorts one of the groups. In order to get good pivot elements, oversampling is used: Initially, more than $S\cdot p$ elements are selected randomly as possible pivot elements for a constant $S$. These elements are then sorted (sequentially because the number of these elements is still small). After that, every $S$th element is selected as pivot element. This oversampling helps finding good pivot elements, such that the resulting groups are are of similar size with high probability.
+Let $p$ be the number of available threads. At the beginning of the sample sort algorithm, the input data is divided into $p$ groups ($p$ being the number of available threads) by using multiple pivot elements (similar to Quicksort). Then, each thread sorts one of the groups locally. The end result is just the concatenation of the local results.  In order to split the input, $p-1$ pivot elements are selected and the elements of the input are grouped into $p$ groups according to these pivot elements. Then, each thread sorts one of the groups. In order to get good pivot elements, oversampling is used: Initially, $S\cdot p$ elements are selected randomly as possible pivot elements for a constant $S$. These elements are then sorted (sequentially because the number of these elements is still small). After that, every $S$th element is selected as pivot element. This oversampling helps finding good pivot elements, such that the resulting groups are are of similar size with high probability.
 
 \section{Implementation Details}
 \subsection{Pivot selection}
@@ -71,7 +71,7 @@ Lastly, each thread moves the elements belonging to its group into the right pla
 \subsection{Local sorting}
 As a last step, we sort all groups locally using the STL sorting algorithm and are finished.
 \subsection{Special Cases}
-When only one thread is used, our implementation just uses the STL sorting algorithm. We also use the STL sorting algorithm directly if the number of possible pivot elements exceeds the number of elements. This happens for small (less than $30000s$) input sizes.
+When only one thread is used, our implementation just uses the STL sorting algorithm (having only one thread means having zero pivot elements. Thus, we know that all elements are in the same group). We also use the STL sorting algorithm directly if the number of possible pivot elements exceeds the number of elements. This happens for small (less than $30000$) input sizes.
 \section{Experimental Results}
 \subsection{Hardware}
 \begin{itemize}
@@ -85,13 +85,13 @@ When only one thread is used, our implementation just uses the STL sorting algor
 We benchmarked our implementation of sample sort and the STL sort using combinations of the following parameters:
 \begin{itemize}
 	\item Type of elements to be sorted: 32-bit Integer or 32-bit float
-	\item Generator for elements: Either random  (using \emph{rand()})or all zero
+	\item Generator for elements: Either random  (using \emph{rand()}) or all zero
 	\item Number of threads: 1,2,4,8
 	\item Number of elements: From $10^5$ to $10^8$ in magnitudes of $10$
 \end{itemize}
 
 \subsection{Plots}
-In \ref{fi:runningtime:random:int} you can see the running time of sample sort (and STL sort when the number of threads is one) for randomly generated input of type Integer. You can see, that our implementation of sample sort scales well with the number of threads. This is made more explicit in \ref{fi:speedup:random:int} where you can see the speedup of sample sort with multiple threads compared to STL sort with a single thread. For large input sizes, sample sort with four threads achieves a speedup of roughly $3.5$ and eight threads get us to roughly $4.5$. Eight threads are not much better than four threads. This is possibly due to the fact that the processor has only four cores and they don't have much idle time because they all sort roughly the same number of elements. Thus, the additional Hyperthreads per Core don't bring much advantage. The speedup from one to two to four threads is nearly linear. \par
+In \ref{fi:runningtime:random:int} you can see the running time of sample sort (and STL sort when the number of threads is one) for randomly generated input of type Integer. You can see, that our implementation of sample sort scales well with the number of threads. This is made more explicit in \ref{fi:speedup:random:int} where you can see the speedup of sample sort with multiple threads compared to STL sort with a single thread. For large input sizes, sample sort with four threads achieves a speedup of roughly $3.5$ and eight threads get us to roughly $4.5$. Eight threads are not much better than four threads. This is possibly due to the fact that the processor has only four cores and they don't have much idle time because they all sort roughly the same number of elements. Thus, the additional Hyperthreads per core don't bring much advantage. The speedup from one to two to four threads is nearly linear. \par
 Figures \ref{fi:runningtime:random:float} and  \ref{fi:speedup:random:float} show the same for random generated input of type Float. The results here are very similar to the results for Integers. The sort-time is in general just a bit higher than the sort time for Integers. \par
 Figures \ref{fi:runningtime:zero:int} and  \ref{fi:speedup:zero:int} show the sorting time for zero input of type Integer. Here, sample sort is always a bit slower than STL sort. This is due to the fact that the bucketing of elements into different groups based on the pivot elements fails here: All elements land in the same group. Thus, one thread has to sort all elements and the others are idle. Hence, the time needed is the time of the STL sort plus some small overhead. 
 \begin{figure}[h!]
@@ -109,13 +109,13 @@ Figures \ref{fi:runningtime:zero:int} and  \ref{fi:speedup:zero:int} show the so
     %% FROM stats
     %% WHERE "algo"='sample_sort' AND "generator"='random' AND "type"='int'
     %% GROUP BY MULTIPLOT,x ORDER BY MULTIPLOT,x
-    \addplot coordinates { (100000,0.0288805) (1000000,0.344186) (10000000,3.97929) };
+    \addplot coordinates { (100000,0.0298755) (1000000,0.343233) (10000000,3.95543) (1e+08,44.9184) };
     \addlegendentry{threads=1};
-    \addplot coordinates { (100000,0.0214051) (1000000,0.196173) (10000000,2.20744) };
+    \addplot coordinates { (100000,0.0223953) (1000000,0.197217) (10000000,2.21772) (1e+08,24.7098) };
     \addlegendentry{threads=2};
-    \addplot coordinates { (100000,0.0169053) (1000000,0.111962) (10000000,1.12908) };
+    \addplot coordinates { (100000,0.0174537) (1000000,0.107612) (10000000,1.12969) (1e+08,12.6224) };
     \addlegendentry{threads=4};
-    \addplot coordinates { (100000,0.0270652) (1000000,0.105403) (10000000,0.901718) };
+    \addplot coordinates { (100000,0.0269119) (1000000,0.104266) (10000000,0.896315) (1e+08,9.75158) };
     \addlegendentry{threads=8};
   \end{axis}
 \end{tikzpicture}
@@ -147,13 +147,13 @@ Figures \ref{fi:runningtime:zero:int} and  \ref{fi:speedup:zero:int} show the so
     %% AND s.size = s1.size
     %% AND s1.threads=1
     %% GROUP BY s.threads,x ORDER BY s.threads,x
-    \addplot coordinates { (100000,1.0) (1000000,1.0) (10000000,1.0) };
+    \addplot coordinates { (100000,1.0) (1000000,1.0) (10000000,1.0) (1e+08,1.0) };
     \addlegendentry{threads=1};
-    \addplot coordinates { (100000,1.34923) (1000000,1.7545) (10000000,1.80267) };
+    \addplot coordinates { (100000,1.33401) (1000000,1.74038) (10000000,1.78356) (1e+08,1.81784) };
     \addlegendentry{threads=2};
-    \addplot coordinates { (100000,1.70837) (1000000,3.07413) (10000000,3.52436) };
+    \addplot coordinates { (100000,1.7117) (1000000,3.18954) (10000000,3.50134) (1e+08,3.55863) };
     \addlegendentry{threads=4};
-    \addplot coordinates { (100000,1.06707) (1000000,3.26543) (10000000,4.41301) };
+    \addplot coordinates { (100000,1.11012) (1000000,3.2919) (10000000,4.41299) (1e+08,4.60627) };
     \addlegendentry{threads=8};
   \end{axis}
 \end{tikzpicture}
@@ -176,13 +176,13 @@ Figures \ref{fi:runningtime:zero:int} and  \ref{fi:speedup:zero:int} show the so
 	%% FROM stats
 	%% WHERE "algo"='sample_sort' AND "generator"='random' AND "type"='float'
 	%% GROUP BY MULTIPLOT,x ORDER BY MULTIPLOT,x
- \addplot coordinates { (100000,0.0310199) (1000000,0.372951) (10000000,4.26784) };
+ \addplot coordinates { (100000,0.0347592) (1000000,0.365217) (10000000,4.30476) (1e+08,47.1836) };
  \addlegendentry{threads=1};
- \addplot coordinates { (100000,0.0216451) (1000000,0.210432) (10000000,2.38692) };
+ \addplot coordinates { (100000,0.0222245) (1000000,0.212854) (10000000,2.3605) (1e+08,26.0303) };
  \addlegendentry{threads=2};
- \addplot coordinates { (100000,0.0197922) (1000000,0.140355) (10000000,1.20216) };
+ \addplot coordinates { (100000,0.0161378) (1000000,0.116521) (10000000,1.20583) (1e+08,16.5535) };
  \addlegendentry{threads=4};
- \addplot coordinates { (100000,0.0278614) (1000000,0.10454) (10000000,0.931351) };
+ \addplot coordinates { (100000,0.027517) (1000000,0.106954) (10000000,0.92927) (1e+08,9.87978) };
  \addlegendentry{threads=8};
 	\end{axis}
 	\end{tikzpicture}
@@ -214,13 +214,13 @@ Figures \ref{fi:runningtime:zero:int} and  \ref{fi:speedup:zero:int} show the so
 	%% AND s.size = s1.size
 	%% AND s1.threads=1
 	%% GROUP BY s.threads,x ORDER BY s.threads,x
- \addplot coordinates { (100000,1.0) (1000000,1.0) (10000000,1.0) };
+ \addplot coordinates { (100000,1.0) (1000000,1.0) (10000000,1.0) (1e+08,1.0) };
  \addlegendentry{threads=1};
- \addplot coordinates { (100000,1.43311) (1000000,1.77231) (10000000,1.78801) };
+ \addplot coordinates { (100000,1.564) (1000000,1.71581) (10000000,1.82366) (1e+08,1.81264) };
  \addlegendentry{threads=2};
- \addplot coordinates { (100000,1.56728) (1000000,2.6572) (10000000,3.55014) };
+ \addplot coordinates { (100000,2.1539) (1000000,3.13434) (10000000,3.56996) (1e+08,2.85037) };
  \addlegendentry{threads=4};
- \addplot coordinates { (100000,1.11336) (1000000,3.56754) (10000000,4.58242) };
+ \addplot coordinates { (100000,1.26319) (1000000,3.41471) (10000000,4.63241) (1e+08,4.77577) };
  \addlegendentry{threads=8};
 	\end{axis}
 	\end{tikzpicture}
@@ -243,13 +243,13 @@ Figures \ref{fi:runningtime:zero:int} and  \ref{fi:speedup:zero:int} show the so
 	%% FROM stats
 	%% WHERE "algo"='sample_sort' AND "generator"='zero' AND "type"='int'
 	%% GROUP BY MULTIPLOT,x ORDER BY MULTIPLOT,x
- \addplot coordinates { (100000,0.0226938) (1000000,0.255372) (10000000,3.16578) };
+ \addplot coordinates { (100000,0.022136) (1000000,0.252914) (10000000,3.14543) (1e+08,35.3739) };
  \addlegendentry{threads=1};
- \addplot coordinates { (100000,0.0268733) (1000000,0.284222) (10000000,3.42253) };
+ \addplot coordinates { (100000,0.026816) (1000000,0.282129) (10000000,3.40147) (1e+08,37.7807) };
  \addlegendentry{threads=2};
- \addplot coordinates { (100000,0.0291582) (1000000,0.277352) (10000000,3.29701) };
+ \addplot coordinates { (100000,0.0310891) (1000000,0.283377) (10000000,3.28597) (1e+08,36.682) };
  \addlegendentry{threads=4};
- \addplot coordinates { (100000,0.0443326) (1000000,0.290168) (10000000,3.30086) };
+ \addplot coordinates { (100000,0.0423386) (1000000,0.289116) (10000000,3.27255) (1e+08,36.5109) };
  \addlegendentry{threads=8};
 	\end{axis}
 	\end{tikzpicture}
@@ -281,13 +281,13 @@ Figures \ref{fi:runningtime:zero:int} and  \ref{fi:speedup:zero:int} show the so
 	%% AND s.size = s1.size
 	%% AND s1.threads=1
 	%% GROUP BY s.threads,x ORDER BY s.threads,x
- \addplot coordinates { (100000,1.0) (1000000,1.0) (10000000,1.0) };
+ \addplot coordinates { (100000,1.0) (1000000,1.0) (10000000,1.0) (1e+08,1.0) };
  \addlegendentry{threads=1};
- \addplot coordinates { (100000,0.844474) (1000000,0.898495) (10000000,0.924982) };
+ \addplot coordinates { (100000,0.825477) (1000000,0.896448) (10000000,0.924727) (1e+08,0.936296) };
  \addlegendentry{threads=2};
- \addplot coordinates { (100000,0.778299) (1000000,0.920751) (10000000,0.960197) };
+ \addplot coordinates { (100000,0.712018) (1000000,0.8925) (10000000,0.95723) (1e+08,0.964339) };
  \addlegendentry{threads=4};
- \addplot coordinates { (100000,0.511899) (1000000,0.880083) (10000000,0.959077) };
+ \addplot coordinates { (100000,0.522833) (1000000,0.874784) (10000000,0.961156) (1e+08,0.968859) };
  \addlegendentry{threads=8};
 	\end{axis}
 	\end{tikzpicture}
